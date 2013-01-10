@@ -56,8 +56,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.Bag["Message"] = strings.ToTitle(error)
-	tmpl.Layout = "templates/admin/layout.html"
 	tmpl.Template = "templates/auth/in.html"
+	tmpl.Layout = "templates/admin/layout.html"
 	tmpl.DisplayTemplate()
 }
 
