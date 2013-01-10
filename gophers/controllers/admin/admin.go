@@ -14,14 +14,11 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err = server.Template(w)
 
-	message := "Jessica"
-
 	if err != nil {
 		plate.Serve404(w, err.Error())
 		return
 	}
 
-	tmpl.Bag["message"] = message
 	tmpl.Template = "templates/index.html"
 
 	tmpl.DisplayTemplate()

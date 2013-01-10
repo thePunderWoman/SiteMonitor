@@ -34,18 +34,21 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) bool {
 
 	userID, _ := session["user"].(int)
 	if userID == 0 {
-		http.Redirect(w, r, "/login", http.StatusFound)
+		http.Redirect(w, r, "/Auth", http.StatusFound)
 	}
 
 	return true
 }
 
-func Login(w http.ResponseWriter, r *http.Request) {
+func Index(w http.ResponseWriter, r *http.Request) {
+	var err error
+	var tmpl plate.Template
+
 	params := r.URL.Query()
 	error := params.Get(":error")
-
 	server := plate.NewServer()
-	tmpl, err := server.Template(w)
+
+	tmpl, err = server.Template(w)
 
 	if err != nil {
 		plate.Serve404(w, err.Error())
@@ -53,12 +56,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.Bag["Message"] = strings.ToTitle(error)
-	tmpl.Layout = "templates/auth/layout.html"
+	tmpl.Layout = "templates/admin/layout.html"
 	tmpl.Template = "templates/auth/in.html"
 	tmpl.DisplayTemplate()
 }
 
-func DoLogin(w http.ResponseWriter, r *http.Request) {
+func Login(w http.ResponseWriter, r *http.Request) {
 	session := plate.Session.Get(r)
 
 	username := r.FormValue("username")

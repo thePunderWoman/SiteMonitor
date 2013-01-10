@@ -12,6 +12,11 @@ func init() {
 	server := plate.NewServer("doughboy")
 	plate.DefaultAuthHandler = auth.AuthHandler
 
+	//Auth Routes
+	server.Get("/auth", auth.Index)
+	server.Post("/auth", auth.Login)
+	server.Get("/auth/out", auth.Logout)
+
 	server.Get("/", controllers.Index)
 
 	//Admin Routes
