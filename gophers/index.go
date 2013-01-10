@@ -15,7 +15,7 @@ func init() {
 	server.Get("/", controllers.Index)
 
 	//Admin Routes
-	server.Get("/Admin", admin.index).Secure()
+	server.Get("/Admin", admin.Index).Secure()
 
 	session_key := "your key here"
 	http.Handle("/", server.NewSessionHandler(session_key, nil))
