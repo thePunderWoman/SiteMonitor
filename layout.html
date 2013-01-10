@@ -27,56 +27,17 @@
                 <a href="/" title="CURT Manufacturing, LLC" class="logo">
                     <img src="/img/logo.png">
                 </a>
-                <span class="sub-title">Order Management</span>
+                <span class="sub-title">Site Status</span>
             </header>
 
             <section class="content">
-                {{with .HideNav}}
-                {{else}}
-                
-                    <h3>Welcome {{.Name}}</h3>
-                    <div class="navbar">
-                        <div class="navbar-inner">
-                            <ul class="nav">
-                                <li><a href="/">Home</a></li>
-                                <li class="dropdown">
-                                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                                        Orders
-                                        <span class="caret"></span>
-                                    </a>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <a href="/orders/processed">
-                                                Complete
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/orders/unprocessed">
-                                                Incomplete
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="/orders">
-                                                View All
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </li>
-                                <li><a href="/settings">Settings</a></li>
-                            </ul>
-                            <ul class="nav pull-right">
-                                <li class="divider-vertical"></li>
-                                <li><a href="/auth/out">Logout</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                {{end}}
+                <h3>Welcome {{.Name}}</h3>
             	{{template "content" .}}
             </section>
 
             <footer>
                 <div class="info span9">
-                    <span>Copyright © 2012 CURT Manufacturing, LLC</span>
+                    <span>Copyright @copy; {{CurrentYear}} CURT Manufacturing, LLC</span>
                     <span>
                         Developed By:
                         <a href="mailto:websupport@curtmfg.com" title="Support">
