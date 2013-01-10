@@ -3,43 +3,101 @@
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<title></title>
-	<meta name="description" content="">
-	<meta name="author" content="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>CURT Site Monitor</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
 
-	<meta name="viewport" content="width=device-width">
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
 
-	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/img/touch/apple-touch-icon-144x144-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/img/touch/apple-touch-icon-114x114-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/img/touch/apple-touch-icon-72x72-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" href="/img/touch/apple-touch-icon-57x57-precomposed.png">
-    <link rel="shortcut icon" href="/img/touch/apple-touch-icon.png">
+        <link rel="stylesheet" href="/css/normalize.css">
+        <link rel="stylesheet" href="/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
+        <link rel="stylesheet" href="/css/style.css">
+    </head>
+    <body>
+        <!--[if lt IE 7]>
+            <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to better experience this site.</p>
+        <![endif]-->
 
-    <link rel="stylesheet" href="/css/normalize.css">
-	<link rel="stylesheet" href="/css/bootstrap.min.css">
-	<link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
-	<link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-	<!--[if lt IE 7]>
-        <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to better experience this site.</p>
-    <![endif]-->
-	<div id="container">
-	  {{template "content" .}}
-	</div>
-	    
+        <div class="container">
+            <header>
+                <a href="/" title="CURT Manufacturing, LLC" class="logo">
+                    <img src="/img/logo.png">
+                </a>
+                <span class="sub-title">Order Management</span>
+            </header>
 
-	<script data-main="/js/main" src="/js/libs/require-jquery-bootstrap.min.js"></script>
-	<!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
-	<script>
-		var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
-		(function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-		g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
-		s.parentNode.insertBefore(g,s)}(document,'script'));
-	</script>
+            <section class="content">
+                {{with .HideNav}}
+                {{else}}
+                
+                    <h3>Welcome {{.Name}}</h3>
+                    <div class="navbar">
+                        <div class="navbar-inner">
+                            <ul class="nav">
+                                <li><a href="/">Home</a></li>
+                                <li class="dropdown">
+                                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                        Orders
+                                        <span class="caret"></span>
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a href="/orders/processed">
+                                                Complete
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="/orders/unprocessed">
+                                                Incomplete
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="/orders">
+                                                View All
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li><a href="/settings">Settings</a></li>
+                            </ul>
+                            <ul class="nav pull-right">
+                                <li class="divider-vertical"></li>
+                                <li><a href="/auth/out">Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                {{end}}
+            	{{template "content" .}}
+            </section>
 
-</body>
+            <footer>
+                <div class="info span9">
+                    <span>Copyright © 2012 CURT Manufacturing, LLC</span>
+                    <span>
+                        Developed By:
+                        <a href="mailto:websupport@curtmfg.com" title="Support">
+                        CURT Labs
+                        </a>
+                    </span>
+                </div>
+                <div class="span2">
+                    <img src="/img/curtLogo_onWhite.png">
+                </div>
+            </footer>
+        </div>
+
+        <script type="text/javascript" data-main="/js/main" src="/js/libs/require-jquery-bootstrap.min.js"></script>
+
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
+            (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+            g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+            s.parentNode.insertBefore(g,s)}(document,'script'));
+        </script>
+    </body>
 </html>

@@ -7,21 +7,8 @@
  */
 
 /* ==========================================================================
-   Base styles: opinionated defaults
-   ========================================================================== */
-
-html,
-button,
-input,
-select,
-textarea {
-    color: #222;
-}
-
-body {
-    font-size: 1em;
-    line-height: 1.4;
-}
+     Base styles: opinionated defaults
+     ========================================================================== */
 
 /*
  * Remove text-shadow in selection highlight: h5bp.com/i
@@ -30,13 +17,13 @@ body {
  */
 
 ::-moz-selection {
-    background: #b3d4fc;
-    text-shadow: none;
+        background: #b3d4fc;
+        text-shadow: none;
 }
 
 ::selection {
-    background: #b3d4fc;
-    text-shadow: none;
+        background: #b3d4fc;
+        text-shadow: none;
 }
 
 /*
@@ -44,12 +31,12 @@ body {
  */
 
 hr {
-    display: block;
-    height: 1px;
-    border: 0;
-    border-top: 1px solid #ccc;
-    margin: 1em 0;
-    padding: 0;
+        display: block;
+        height: 1px;
+        border: 0;
+        border-top: 1px solid #ccc;
+        margin: 1em 0;
+        padding: 0;
 }
 
 /*
@@ -57,17 +44,7 @@ hr {
  */
 
 img {
-    vertical-align: middle;
-}
-
-/*
- * Remove default fieldset styles.
- */
-
-fieldset {
-    border: 0;
-    margin: 0;
-    padding: 0;
+        vertical-align: middle;
 }
 
 /*
@@ -75,34 +52,201 @@ fieldset {
  */
 
 textarea {
-    resize: vertical;
+        resize: vertical;
 }
 
 /* ==========================================================================
-   Chrome Frame prompt
-   ========================================================================== */
+     Chrome Frame prompt
+     ========================================================================== */
 
 .chromeframe {
-    margin: 0.2em 0;
-    background: #ccc;
-    color: #000;
-    padding: 0.2em 0;
+        margin: 0.2em 0;
+        background: #ccc;
+        color: #000;
+        padding: 0.2em 0;
 }
 
 /* ==========================================================================
-   Author's custom styles
-   Author: 
-   ========================================================================== */
+     Author's custom styles
+     ========================================================================== */
+
+
+.align-left {
+    text-align: left;
+}
+.align-right {
+    text-align: right;
+}
+.align-center text-align center,
+.left {
+    float: left;
+}
+.right {
+    float: right;
+}
+
+.sortable thead tr th{
+    cursor: pointer;
+}
+.sortable thead tr th:last-child{
+    cursor: default;
+}
+.sortable tbody tr td:last-child .btn-group{
+    text-align: center;
+}
+
+.sortable tbody tr td:last-child .btn-group ul{
+    text-align: left;
+}
+
+.sortable tbody tr td.sorted{
+    font-weight: 500;
+}
+
+
+body {
+    background: url("/img/light_wool.png");
+}
+body div.container {
+    background: #f7f6f5;
+}
+body div.container header {
+    background: #343434;
+    border-top: 6px solid #e64d2c;
+    padding-bottom: 15px;
+    -webkit-box-shadow: 3px 3px 3px #343434;
+    -moz-box-shadow: 3px 3px 3px #343434;
+    -ms-box-shadow: 3px 3px 3px #343434;
+    -o-box-shadow: 3px 3px 3px #343434;
+    box-shadow: 3px 3px 3px #343434;
+}
+body div.container header a img {
+    width: 400px;
+}
+body div.container header span.sub-title {
+    color: #fff;
+    font-size: 20px;
+    margin-left: 15px;
+    position: relative;
+    top: 26px;
+}
+body div.container section.content {
+    min-height: 200px;
+    background: #fff;
+    -webkit-box-shadow: 3px 3px 3px #eaeaea;
+    -moz-box-shadow: 3px 3px 3px #eaeaea;
+    -ms-box-shadow: 3px 3px 3px #eaeaea;
+    -o-box-shadow: 3px 3px 3px #eaeaea;
+    box-shadow: 3px 3px 3px #eaeaea;
+    -webkit-border-radius: 0 0 3px 3px;
+    -moz-border-radius: 0 0 3px 3px;
+    -ms-border-radius: 0 0 3px 3px;
+    -o-border-radius: 0 0 3px 3px;
+    border-radius: 0 0 3px 3px;
+    padding: 50px;
+}
+
+body div.container footer {
+    height: 60px;
+}
+body div.container footer div.info span {
+    display: block;
+    margin-top: 10px;
+    font-size: 10px;
+    line-height: 8px;
+    color: #aea79f;
+}
+body div.container footer div.info span a {
+    color: #000;
+    margin-left: 5px;
+}
+body div.container footer .span2 img {
+    margin-top: 10px;
+    width: 200px;
+}
 
 
 
+/* Edit Order Page
+     ================================ */
+     
+.order-info .order-title{
+    float: left;
+}
 
+.order-info .call-to-action{
+    float:left;
+    margin:10px 10px 10px 20px;
+}
 
+.order-info .call-to-action .btn{
+    margin-right: 10px;
+}
 
+.order-info .call-to-action .btn i{
+    display: none;
+}
 
+.order-info .icon-refresh{
+    -webkit-animation: all 10s linear infinite;
+    -moz-animation: all 10s linear infinite;
+    -ms-animation: all 10s linear infinite;
+    -o-animation: all 10s linear infinite;
+    animation: all 10s linear infinite;
+    -webkit-transform: rotate(3600);
+    -moz-transform: rotate(3600);
+    -o-transform: rotate(3600);
+    -ms-transform: rotate(3600);
+    transform: rotate(3600);
+}
 
+.order-info .details article span{
+    font-size: 15px;
+    border: 1px solid #acacac;
+    display:inline-block;
+    height:30px;
+    line-height:30px;
+    margin-bottom: 5px;
 
+}
 
+.order-info .details article span:nth-child(odd){
+     width:100px;
+     font-weight:400;
+     background: rgb(204,204,204);
+     background: rgba(204,204,204,0.1);
+     border-radius: 4px 0 0 4px;
+     padding: 0 5px;
+}
+
+.order-info .details article span:nth-child(even){
+     border-radius: 0 4px 4px 0;
+     color: rgb(0,0,0);
+     color: rgba(0,0,0,0.6);
+     border-left:none;
+     margin-left:0;
+     width:200px;
+     position: relative;
+     left: -4px;
+     padding: 0 5px;
+}
+
+.order-info .shipping .span4:first-child{
+    border-right: 1px solid #f1f1f1;
+}
+
+.order-info .shipping .span4 .locationId{
+    margin: 10px auto;
+    display:block;
+}
+
+.order-info .shipping .text-info{
+    text-align: center;
+    font-size: 15px;
+    display: block;
+}
+
+        
 
 
 
@@ -111,26 +255,26 @@ textarea {
 
 
 /* ==========================================================================
-   Helper classes
-   ========================================================================== */
+     Helper classes
+     ========================================================================== */
 
 /*
  * Image replacement
  */
 
 .ir {
-    background-color: transparent;
-    border: 0;
-    overflow: hidden;
-    /* IE 6/7 fallback */
-    *text-indent: -9999px;
+        background-color: transparent;
+        border: 0;
+        overflow: hidden;
+        /* IE 6/7 fallback */
+        *text-indent: -9999px;
 }
 
 .ir:before {
-    content: "";
-    display: block;
-    width: 0;
-    height: 100%;
+        content: "";
+        display: block;
+        width: 0;
+        height: 100%;
 }
 
 /*
@@ -138,8 +282,8 @@ textarea {
  */
 
 .hidden {
-    display: none !important;
-    visibility: hidden;
+        display: none !important;
+        visibility: hidden;
 }
 
 /*
@@ -147,14 +291,14 @@ textarea {
  */
 
 .visuallyhidden {
-    border: 0;
-    clip: rect(0 0 0 0);
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    width: 1px;
+        border: 0;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
 }
 
 /*
@@ -164,12 +308,12 @@ textarea {
 
 .visuallyhidden.focusable:active,
 .visuallyhidden.focusable:focus {
-    clip: auto;
-    height: auto;
-    margin: 0;
-    overflow: visible;
-    position: static;
-    width: auto;
+        clip: auto;
+        height: auto;
+        margin: 0;
+        overflow: visible;
+        position: static;
+        width: auto;
 }
 
 /*
@@ -177,7 +321,7 @@ textarea {
  */
 
 .invisible {
-    visibility: hidden;
+        visibility: hidden;
 }
 
 /*
@@ -194,12 +338,12 @@ textarea {
 
 .clearfix:before,
 .clearfix:after {
-    content: " "; /* 1 */
-    display: table; /* 2 */
+        content: " "; /* 1 */
+        display: table; /* 2 */
 }
 
 .clearfix:after {
-    clear: both;
+        clear: both;
 }
 
 /*
@@ -208,92 +352,92 @@ textarea {
  */
 
 .clearfix {
-    *zoom: 1;
+        *zoom: 1;
 }
 
 /* ==========================================================================
-   EXAMPLE Media Queries for Responsive Design.
-   Theses examples override the primary ('mobile first') styles.
-   Modify as content requires.
-   ========================================================================== */
+     EXAMPLE Media Queries for Responsive Design.
+     Theses examples override the primary ('mobile first') styles.
+     Modify as content requires.
+     ========================================================================== */
 
 @media only screen and (min-width: 35em) {
-    /* Style adjustments for viewports that meet the condition */
+        /* Style adjustments for viewports that meet the condition */
 }
 
 @media only screen and (-webkit-min-device-pixel-ratio: 1.5),
-       only screen and (min-resolution: 144dpi) {
-    /* Style adjustments for high resolution devices */
+             only screen and (min-resolution: 144dpi) {
+        /* Style adjustments for high resolution devices */
 }
 
 /* ==========================================================================
-   Print styles.
-   Inlined to avoid required HTTP connection: h5bp.com/r
-   ========================================================================== */
+     Print styles.
+     Inlined to avoid required HTTP connection: h5bp.com/r
+     ========================================================================== */
 
 @media print {
-    * {
-        background: transparent !important;
-        color: #000 !important; /* Black prints faster: h5bp.com/s */
-        box-shadow:none !important;
-        text-shadow: none !important;
-    }
+        * {
+                background: transparent !important;
+                color: #000 !important; /* Black prints faster: h5bp.com/s */
+                box-shadow:none !important;
+                text-shadow: none !important;
+        }
 
-    a,
-    a:visited {
-        text-decoration: underline;
-    }
+        a,
+        a:visited {
+                text-decoration: underline;
+        }
 
-    a[href]:after {
-        content: " (" attr(href) ")";
-    }
+        a[href]:after {
+                content: " (" attr(href) ")";
+        }
 
-    abbr[title]:after {
-        content: " (" attr(title) ")";
-    }
+        abbr[title]:after {
+                content: " (" attr(title) ")";
+        }
 
-    /*
-     * Don't show links for images, or javascript/internal links
-     */
+        /*
+         * Don't show links for images, or javascript/internal links
+         */
 
-    .ir a:after,
-    a[href^="javascript:"]:after,
-    a[href^="#"]:after {
-        content: "";
-    }
+        .ir a:after,
+        a[href^="javascript:"]:after,
+        a[href^="#"]:after {
+                content: "";
+        }
 
-    pre,
-    blockquote {
-        border: 1px solid #999;
-        page-break-inside: avoid;
-    }
+        pre,
+        blockquote {
+                border: 1px solid #999;
+                page-break-inside: avoid;
+        }
 
-    thead {
-        display: table-header-group; /* h5bp.com/t */
-    }
+        thead {
+                display: table-header-group; /* h5bp.com/t */
+        }
 
-    tr,
-    img {
-        page-break-inside: avoid;
-    }
+        tr,
+        img {
+                page-break-inside: avoid;
+        }
 
-    img {
-        max-width: 100% !important;
-    }
+        img {
+                max-width: 100% !important;
+        }
 
-    @page {
-        margin: 0.5cm;
-    }
+        @page {
+                margin: 0.5cm;
+        }
 
-    p,
-    h2,
-    h3 {
-        orphans: 3;
-        widows: 3;
-    }
+        p,
+        h2,
+        h3 {
+                orphans: 3;
+                widows: 3;
+        }
 
-    h2,
-    h3 {
-        page-break-after: avoid;
-    }
+        h2,
+        h3 {
+                page-break-after: avoid;
+        }
 }
