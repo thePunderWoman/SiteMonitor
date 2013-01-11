@@ -825,7 +825,9 @@ func (t Template) DisplayTemplate() (err error) {
 		return time.Now().Year()
 	}
 
-	templ, err := template.New(t.Layout).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
+	templateName := strings.Replace(t.Layout, "/", "_", -1)
+
+	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
 
 	err = templ.Execute(t.Writer, t.Bag)
 
