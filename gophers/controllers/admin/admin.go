@@ -5,7 +5,6 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"gophers/plate"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -22,10 +21,10 @@ type Website struct {
 	Status      string
 }
 
-type QueryResult struct {
+/*type QueryResult struct {
 	Key     *datastore.Key
 	Website Website
-}
+}*/
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	server := plate.NewServer()
@@ -43,33 +42,24 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	q := datastore.NewQuery("website").Order("Name")
 
-	//sites := make([]Website, 0)
-	/*var keys []*datastore.Key
-	if keys, err = q.GetAll(c, &sites); err != nil {
-		// handle the error
-	}
-	log.Println(sites)
-	log.Println(keys)
-	*/
-	var sites []QueryResult
-	i := 0
+	//var sites []QueryResult
+	sites := make(map[int64]Website, 0)
 	for t := q.Run(c); ; {
 		var x Website
 		key, err := t.Next(&x)
-		sites[i] = QueryResult{
-			Key:     key,
-			Website: x,
-		}
-		i++
-		if err == datastore.Done {
+
+		// Just had to switch this to check before you attempt to do an assignment
+		if err == datastore.Done || err != nil {
 			break
 		}
-		if err != nil {
-			break
-		}
+
+		// Also, you can key that array using the IntID() function
+		// of a *Key property. This will return and int64
+		// and you can use this value later to quiery the
+		// datastore.
+		sites[key.IntID()] = x
+
 	}
-	log.Println(sites)
-	//tmpl.Bag["Keys"] = keys
 	tmpl.Bag["SiteCount"] = len(sites)
 	tmpl.Bag["Sites"] = sites
 	tmpl.Bag["Name"] = session["name"]
