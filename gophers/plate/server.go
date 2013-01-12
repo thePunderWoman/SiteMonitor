@@ -804,7 +804,11 @@ func (t Template) SinglePage(file_path string) (err error) {
 		return time.Now().Year()
 	}
 
-	tmpl, err := template.New(t.Template).Funcs(t.FuncMap).ParseFiles(t.Template)
+	// Template ParseFiles method creates a template of a name that matches the first file in the ParseFiles list
+	templateStrings := strings.Split(t.Layout, "/")
+	templateName := templateStrings[len(templateStrings)-1]
+
+	tmpl, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Template)
 	err = tmpl.Execute(t.Writer, t.Bag)
 
 	return
@@ -825,7 +829,9 @@ func (t Template) DisplayTemplate() (err error) {
 		return time.Now().Year()
 	}
 
-	templateName := strings.Replace(t.Layout, "/", "_", -1)
+	// Template ParseFiles method creates a template of a name that matches the first file in the ParseFiles list
+	templateStrings := strings.Split(t.Layout, "/")
+	templateName := templateStrings[len(templateStrings)-1]
 
 	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
 
@@ -849,7 +855,11 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 		return time.Now().Year()
 	}
 
-	templ, err := template.New(t.Layout).Funcs(t.FuncMap).ParseFiles(t.Layout)
+	// Template ParseFiles method creates a template of a name that matches the first file in the ParseFiles list
+	templateStrings := strings.Split(t.Layout, "/")
+	templateName := templateStrings[len(templateStrings)-1]
+
+	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout)
 	for _, filename := range templates {
 		templ.ParseFiles(filename)
 	}

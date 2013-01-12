@@ -1,6 +1,13 @@
 {{define "content"}}
 	<h2>Login</h2>
-	<form action="/auth/DoLogin" method="post">
+	{{with .Error}}
+		<div class="alert alert-error">
+			<button type="button" class="close" data-dismiss="alert">×</button>
+			<h4>Warning!</h4>
+			{{.}}
+		</div>
+	{{end}}
+	<form action="/auth" method="post">
 		<label for="username">
 			<input id="username" name="username" placeholder="username" type="text" />
 		</label>

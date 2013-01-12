@@ -1,0 +1,84 @@
+{{define "content"}}
+    <h3>Welcome {{.Name}}</h3>
+    <div class="navbar">
+        <div class="navbar-inner">
+            <ul class="nav">
+                <li><a href="/">Home</a></li>
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        Websites
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="/add">
+                                Add
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/admin">
+                                View All
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="nav pull-right">
+                <li class="divider-vertical"></li>
+                <li><a href="/auth/out">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+    {{with .Sites}}
+    	<table class="table table-bordered table-condensed table-striped table-hover sortable">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>URL</th>
+					<th>Interval</th>
+					<th class="date">Last Checked</th>
+					<th>Monitoring</th>
+					<th>Status</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				{{range .Website}}
+					<tr>
+						<td>{{.Name}}</td>
+						<td>{{.URL}}</td>
+						<td>{{.Interval}} Mins</td>
+						<td>{{.LastChecked}}</td>
+						<td>{{if .Monitoring}}
+								Yes
+							{{else}}
+								No
+							{{end}}
+						</td>
+						<td>{{.Status}}</td>
+						<td>
+							<div class="btn-group">
+								<a href="#" class="btn dropdown-toggle" data-toggle="dropdown">
+									Action
+									<span class="caret"></span>
+								</a>
+								<ul class="dropdown-menu">
+									<li><a href="/edit/">Edit</a></li>
+									<li><a href="#" class="delete-site" data-key="">Delete</a></li>
+								</ul>
+							</div>
+						</td>
+					</tr>
+				{{end}}
+			</tbody>
+		</table>
+    {{else}}
+	<div class="alert alert-info">
+		<button class="close" type="button" data-dismiss="alert">x</button>
+		<h4>Heads up!</h4>
+		We currently don't have any Websites to display
+	</div>
+	{{end}}
+	<p>{{.SiteCount}}</p>
+
+ {{end}}

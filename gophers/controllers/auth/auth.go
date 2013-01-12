@@ -46,6 +46,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	params := r.URL.Query()
 	error := params.Get(":error")
+	error, _ = url.QueryUnescape(error)
 	server := plate.NewServer()
 
 	tmpl, err = server.Template(w)
@@ -55,9 +56,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl.Bag["Message"] = strings.ToTitle(error)
+	tmpl.Bag["Error"] = strings.ToTitle(error)
 	tmpl.Template = "templates/auth/in.html"
-	tmpl.Layout = "templates/admin/layout.html"
 	tmpl.DisplayTemplate()
 }
 
@@ -70,9 +70,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil || cust == nil {
 		log.Println("hit error")
-		http.Redirect(w, r, "/login/Failed to log you into the system", http.StatusFound)
+		urlpath := "/auth/" + url.QueryEscape("Failed to log you into the system")
+		http.Redirect(w, r, urlpath, http.StatusFound)
 	} else {
 		session["user"] = cust.UserID
+		session["name"] = cust.Fname
 		http.Redirect(w, r, "/admin", http.StatusFound)
 	}
 }
@@ -80,7 +82,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 func Logout(w http.ResponseWriter, r *http.Request) {
 	session := plate.Session.Get(r)
 	delete(session, "user")
-	http.Redirect(w, r, "/login", http.StatusFound)
+	http.Redirect(w, r, "/auth", http.StatusFound)
 }
 
 func LoadUser(u string, p string, r *http.Request, w http.ResponseWriter) (c *Customer, err error) {

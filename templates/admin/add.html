@@ -1,0 +1,25 @@
+{{define "content"}}
+	<h2>Add a Website</h2>
+	{{with .Error}}
+		<div class="alert alert-error">
+			<button type="button" class="close" data-dismiss="alert">×</button>
+			<h4>Warning!</h4>
+			{{.}}
+		</div>
+	{{end}}
+	<form class="form-horizontal" action="/add" method="post">
+		<label for="name">
+			Name
+			<input id="name" name="name" placeholder="Enter a Name" type="text" />
+		</label>
+		<label for="url">
+			URL
+			<input id="url" name="url" placeholder="Enter a full website URL" type="text" />
+		</label>
+		<label for="interval">
+			Interval (minutes)
+			<input id="interval" name="interval" placeholder="Enter an interval in mins" type="number" />
+		</label>
+		<input type="submit" value="Save" />
+	</form>  
+{{end}}
