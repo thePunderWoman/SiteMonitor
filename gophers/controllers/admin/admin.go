@@ -5,6 +5,7 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"gophers/plate"
+	"html/template"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -19,6 +20,7 @@ type Website struct {
 	LastChecked time.Time
 	Monitoring  bool
 	Status      string
+	Public      bool
 }
 
 /*type QueryResult struct {
@@ -37,6 +39,14 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		plate.Serve404(w, err.Error())
 		return
+	}
+
+	tmpl.FuncMap = template.FuncMap{
+		"formatDate": func(dt time.Time) string {
+			layout := "Mon, 01/02/06, 3:04PM MST"
+			Local, _ := time.LoadLocation("US/Central")
+			return dt.In(Local).Format(layout)
+		},
 	}
 
 	c := appengine.NewContext(r)
@@ -108,6 +118,7 @@ func Save(w http.ResponseWriter, r *http.Request) {
 		Monitoring:  true,
 		Status:      "unknown",
 		LastChecked: time.Now(),
+		Public:      false,
 	}
 
 	_, err1 := datastore.Put(c, datastore.NewIncompleteKey(c, "website", nil), &site)

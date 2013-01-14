@@ -38,24 +38,31 @@
 					<th>Interval</th>
 					<th class="date">Last Checked</th>
 					<th>Monitoring</th>
+					<th>Public</th>
 					<th>Status</th>
 					<th></th>
 				</tr>
 			</thead>
 			<tbody>
-				{{range .}}
+				{{range $key, $site := .}}
 					<tr>
-						<td>{{.Name}}</td>
-						<td>{{.URL}}</td>
-						<td>{{.Interval}} Mins</td>
-						<td>{{.LastChecked}}</td>
-						<td>{{if .Monitoring}}
+						<td>{{$site.Name}}</td>
+						<td>{{$site.URL}}</td>
+						<td>{{$site.Interval}} Mins</td>
+						<td>{{formatDate $site.LastChecked}}</td>
+						<td>{{if $site.Monitoring}}
 								Yes
 							{{else}}
 								No
 							{{end}}
 						</td>
-						<td>{{.Status}}</td>
+						<td>{{if $site.Public}}
+								Yes
+							{{else}}
+								No
+							{{end}}
+						</td>
+						<td>{{$site.Status}}</td>
 						<td>
 							<div class="btn-group">
 								<a href="#" class="btn dropdown-toggle" data-toggle="dropdown">
@@ -63,8 +70,8 @@
 									<span class="caret"></span>
 								</a>
 								<ul class="dropdown-menu">
-									<li><a href="/edit/">Edit</a></li>
-									<li><a href="#" class="delete-site" data-key="">Delete</a></li>
+									<li><a href="/edit/{{$key}}">Edit</a></li>
+									<li><a href="#" class="delete-site" data-key="{{$key}}">Delete</a></li>
 								</ul>
 							</div>
 						</td>
