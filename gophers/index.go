@@ -25,6 +25,7 @@ func init() {
 	server.Get("/Add", admin.Add).Secure()
 	server.Get("/Add/:error", admin.Add).Secure()
 	server.Post("/Add", admin.Save).Secure()
+	server.Post("/Delete", admin.Delete).Secure()
 
 	session_key := "your key here"
 	http.Handle("/", server.NewSessionHandler(session_key, nil))

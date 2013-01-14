@@ -1,32 +1,14 @@
 package admin
 
 import (
-	//	"fmt"
-	"appengine"
-	"appengine/datastore"
+	"fmt"
+	"gophers/helpers/website"
 	"gophers/plate"
 	"html/template"
 	"net/http"
 	"net/url"
-	"strconv"
-	"strings"
 	"time"
 )
-
-type Website struct {
-	Name        string
-	URL         string
-	Interval    int
-	LastChecked time.Time
-	Monitoring  bool
-	Status      string
-	Public      bool
-}
-
-/*type QueryResult struct {
-	Key     *datastore.Key
-	Website Website
-}*/
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	server := plate.NewServer()
@@ -49,28 +31,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	c := appengine.NewContext(r)
-	q := datastore.NewQuery("website").Order("Name")
-
-	//var sites []QueryResult
-	sites := make(map[int64]Website, 0)
-	for t := q.Run(c); ; {
-		var x Website
-		key, err := t.Next(&x)
-
-		// Just had to switch this to check before you attempt to do an assignment
-		if err == datastore.Done || err != nil {
-			break
-		}
-
-		// Also, you can key that array using the IntID() function
-		// of a *Key property. This will return and int64
-		// and you can use this value later to quiery the
-		// datastore.
-		sites[key.IntID()] = x
-
-	}
-	tmpl.Bag["SiteCount"] = len(sites)
+	sites := website.GetAll(r)
 	tmpl.Bag["Sites"] = sites
 	tmpl.Bag["Name"] = session["name"]
 	tmpl.Template = "templates/admin/index.html"
@@ -100,29 +61,19 @@ func Add(w http.ResponseWriter, r *http.Request) {
 	tmpl.DisplayTemplate()
 }
 
+func Delete(w http.ResponseWriter, r *http.Request) {
+	err := website.Delete(r)
+	if err == nil {
+		fmt.Fprint(w, "{\"success\":true}")
+	} else {
+		fmt.Fprint(w, "{\"success\":false}")
+	}
+}
+
 func Save(w http.ResponseWriter, r *http.Request) {
 	// Save website url
-	c := appengine.NewContext(r)
-	name := r.FormValue("name")
-	urlstr := r.FormValue("url")
-	interval, err := strconv.Atoi(r.FormValue("interval"))
-
-	if strings.TrimSpace(name) == "" || strings.TrimSpace(urlstr) == "" || err != nil || interval < 5 {
-		http.Redirect(w, r, "/add/"+url.QueryEscape("Name and URL are required. Interval must be an integer greater than 5."), http.StatusFound)
-	}
-
-	site := Website{
-		Name:        name,
-		URL:         urlstr,
-		Interval:    interval,
-		Monitoring:  true,
-		Status:      "unknown",
-		LastChecked: time.Now(),
-		Public:      false,
-	}
-
-	_, err1 := datastore.Put(c, datastore.NewIncompleteKey(c, "website", nil), &site)
-	if err1 != nil {
+	err := website.Save(r)
+	if err != nil {
 		http.Redirect(w, r, "/add/"+url.QueryEscape("There was a problem saving to the datastore: "+err.Error()), http.StatusFound)
 	} else {
 		http.Redirect(w, r, "/admin", http.StatusFound)
