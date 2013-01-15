@@ -4,7 +4,7 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"errors"
-	"log"
+	//"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -47,7 +47,6 @@ func Save(r *http.Request) (err error) {
 	var keynum int64
 	keynum, _ = strconv.ParseInt(r.FormValue("parentID"), 10, 64)
 	parentKey := datastore.NewKey(c, "website", "", keynum, nil)
-	log.Println(parentKey)
 
 	if strings.TrimSpace(name) == "" || strings.TrimSpace(email) == "" {
 		err = errors.New("Name and Email are required.")
