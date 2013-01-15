@@ -34,6 +34,17 @@ func GetAll(r *http.Request) (sites []Website, err error) {
 	return sites, err
 }
 
+func GetPublic(r *http.Request) (sites []Website, err error) {
+	c := appengine.NewContext(r)
+	q := datastore.NewQuery("website").Filter("Public =", true).Order("Name")
+
+	//var sites []QueryResult
+	sites = make([]Website, 0)
+	_, err = q.GetAll(c, &sites)
+
+	return sites, err
+}
+
 func Get(r *http.Request, key int64) (site *Website, err error) {
 
 	c := appengine.NewContext(r)

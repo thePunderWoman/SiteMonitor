@@ -1,4 +1,10 @@
 {{define "content"}}
 	<h3>Status of CURT Services</h3>
-	<p>Websites Go Here</p>  
+	{{with .Sites}}
+		<ul class="sites">
+			{{range .}}
+				<li><span class="status {{.Status}}" title="{{.Status}}"></span> <a href="{{.URL}}" target="_blank">{{.Name}}</a> ({{.URL}}) - Last Checked {{formatDate .LastChecked}}</li>
+			{{end}}
+		</ul>
+	{{end}}
 {{end}}

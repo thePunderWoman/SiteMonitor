@@ -2,8 +2,11 @@ package controllers
 
 import (
 	//	"fmt"
+	"gophers/helpers/website"
 	"gophers/plate"
+	"html/template"
 	"net/http"
+	"time"
 )
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -19,6 +22,17 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tmpl.FuncMap = template.FuncMap{
+		"formatDate": func(dt time.Time) string {
+			layout := "Mon, 01/02/06, 3:04PM MST"
+			Local, _ := time.LoadLocation("US/Central")
+			return dt.In(Local).Format(layout)
+		},
+	}
+
+	sites, err := website.GetPublic(r)
+
+	tmpl.Bag["Sites"] = sites
 	tmpl.Template = "templates/index.html"
 
 	tmpl.DisplayTemplate()

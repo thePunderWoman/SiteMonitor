@@ -19,3 +19,8 @@ indexes:
   properties:
   - name: parentID
   - name: Name
+
+- kind: website
+  properties:
+  - name: Public
+  - name: Name

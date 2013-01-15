@@ -165,94 +165,43 @@ body div.container footer .span2 img {
     width: 200px;
 }
 
-
-
-/* Edit Order Page
-     ================================ */
-     
-.order-info .order-title{
-    float: left;
+ul.sites {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 15px;
 }
 
-.order-info .call-to-action{
-    float:left;
-    margin:10px 10px 10px 20px;
-}
-
-.order-info .call-to-action .btn{
-    margin-right: 10px;
-}
-
-.order-info .call-to-action .btn i{
-    display: none;
-}
-
-.order-info .icon-refresh{
-    -webkit-animation: all 10s linear infinite;
-    -moz-animation: all 10s linear infinite;
-    -ms-animation: all 10s linear infinite;
-    -o-animation: all 10s linear infinite;
-    animation: all 10s linear infinite;
-    -webkit-transform: rotate(3600);
-    -moz-transform: rotate(3600);
-    -o-transform: rotate(3600);
-    -ms-transform: rotate(3600);
-    transform: rotate(3600);
-}
-
-.order-info .details article span{
+ul.sites li {
+    line-height: 15px;
+    margin: 0;
+    padding: 0;
     font-size: 15px;
-    border: 1px solid #acacac;
-    display:inline-block;
-    height:30px;
-    line-height:30px;
-    margin-bottom: 5px;
-
 }
 
-.order-info .details article span:nth-child(odd){
-     width:100px;
-     font-weight:400;
-     background: rgb(204,204,204);
-     background: rgba(204,204,204,0.1);
-     border-radius: 4px 0 0 4px;
-     padding: 0 5px;
+ul.sites li a {
+    display: inline-block;
+    margin-left: 5px;
 }
 
-.order-info .details article span:nth-child(even){
-     border-radius: 0 4px 4px 0;
-     color: rgb(0,0,0);
-     color: rgba(0,0,0,0.6);
-     border-left:none;
-     margin-left:0;
-     width:200px;
-     position: relative;
-     left: -4px;
-     padding: 0 5px;
+span.status {
+    display: inline-block;
+    height: 15px;
+    width: 15px;
+    background: url('/img/status.png') -15px 0px no-repeat;
+    line-height: 15px;
 }
 
-.order-info .shipping .span4:first-child{
-    border-right: 1px solid #f1f1f1;
+span.up {
+    background-position: -30px 0px;
 }
 
-.order-info .shipping .span4 .locationId{
-    margin: 10px auto;
-    display:block;
+span.down {
+    background-position: 0px 0px;
 }
 
-.order-info .shipping .text-info{
+td.center {
     text-align: center;
-    font-size: 15px;
-    display: block;
 }
-
-        
-
-
-
-
-
-
 
 /* ==========================================================================
      Helper classes
