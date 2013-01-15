@@ -106,7 +106,11 @@ func Save(w http.ResponseWriter, r *http.Request) {
 	// Save website url
 	err := website.Save(r)
 	if err != nil {
-		http.Redirect(w, r, "/add/"+url.QueryEscape("There was a problem saving to the datastore: "+err.Error()), http.StatusFound)
+		if r.FormValue("siteID") == "" {
+			http.Redirect(w, r, "/add/"+url.QueryEscape("There was a problem saving to the datastore: "+err.Error()), http.StatusFound)
+		} else {
+			http.Redirect(w, r, "/edit/"+r.FormValue("siteID")+"/"+url.QueryEscape("There was a problem saving to the datastore: "+err.Error()), http.StatusFound)
+		}
 	} else {
 		http.Redirect(w, r, "/admin", http.StatusFound)
 	}

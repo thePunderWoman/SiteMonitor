@@ -4,7 +4,7 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"errors"
-	"log"
+	//"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -52,7 +52,6 @@ func Get(r *http.Request, key int64) (site *Website, err error) {
 	k := datastore.NewKey(c, "website", "", key, nil)
 	w := new(Website)
 	err = datastore.Get(c, k, w)
-	log.Println(err)
 
 	return w, err
 }
@@ -63,7 +62,6 @@ func Delete(r *http.Request) (err error) {
 	keynum, _ = strconv.ParseInt(r.FormValue("key"), 10, 64)
 	k := datastore.NewKey(c, "website", "", keynum, nil)
 	err = datastore.Delete(c, k)
-	log.Println(err)
 	return
 }
 

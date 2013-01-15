@@ -1,5 +1,39 @@
 {{define "content"}}
-	<h2>Add a Website</h2>
+	{{with .Website}}
+		<h3>Edit {{.Name}}</h3>
+	{{else}}
+		<h3>Add a Website</h3>
+	{{end}}
+	<div class="navbar">
+		<div class="navbar-inner">
+			<ul class="nav">
+				<li><a href="/">Home</a></li>
+				<li class="dropdown">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+						Websites
+						<span class="caret"></span>
+					</a>
+					<ul class="dropdown-menu">
+						<li>
+							<a href="/add">
+								Add
+							</a>
+						</li>
+						<li>
+							<a href="/admin">
+								View All
+							</a>
+						</li>
+					</ul>
+				</li>
+			</ul>
+			<ul class="nav pull-right">
+				<li class="divider-vertical"></li>
+				<li><a href="/auth/out">Logout</a></li>
+			</ul>
+		</div>
+	</div>
+
 	{{with .Error}}
 		<div class="alert alert-error">
 			<button type="button" class="close" data-dismiss="alert">×</button>
@@ -11,26 +45,42 @@
 		{{if .Website.ID}}
 			<input type="hidden" name="siteID" id="siteID" value="{{.Website.ID}}" />
 		{{end}}
-		<label for="name">
-			Name
-			<input id="name" name="name" placeholder="Enter a Name" type="text" {{if .Website.Name}} value="{{.Website.Name}}" {{end}} />
-		</label>
-		<label for="url">
-			URL
-			<input id="url" name="url" placeholder="Enter a full website URL" type="text" {{if .Website.URL}} value="{{.Website.URL}}" {{end}} />
-		</label>
-		<label for="interval">
-			Interval (minutes)
-			<input id="interval" name="interval" placeholder="Enter an interval in mins" type="number" {{if .Website.Interval}} value="{{.Website.Interval}}" {{end}} />
-		</label>
-		<label for="monitoring">
-			Monitoring
-			<input id="monitoring" name="monitoring" value="1" type="checkbox" {{if .Website.Monitoring}} checked="checked" {{end}} />
-		</label>
-		<label for="public">
-			Public
-			<input id="public" name="public" value="1" type="checkbox" {{if .Website.Public}} checked="checked" {{end}} />
-		</label>
-		<input type="submit" value="Save" />
+		<div class="control-group">
+			<label for="name" class="control-label">Name</label>
+			<div class="controls">
+				<input id="name" name="name" placeholder="Enter a Name" type="text" {{if .Website.Name}} value="{{.Website.Name}}" {{end}} />
+			</div>
+		</div>
+		<div class="control-group">
+			<label for="url" class="control-label">URL</label>
+			<div class="controls">
+				<input id="url" name="url" placeholder="Enter a full website URL" type="text" {{if .Website.URL}} value="{{.Website.URL}}" {{end}} />
+			</div>
+		</div>
+		<div class="control-group">
+			<label for="interval" class="control-label">Interval (minutes)</label>
+			<div class="controls">
+				<input id="interval" name="interval" placeholder="Enter an interval in mins" type="number" {{if .Website.Interval}} value="{{.Website.Interval}}" {{end}} />
+			</div>
+		</div>
+		<div class="control-group">
+			<div class="controls">
+				<label for="monitoring" class="checkbox">
+					<input id="monitoring" name="monitoring" value="1" type="checkbox" {{if .Website.Monitoring}} checked="checked" {{end}} /> Monitoring
+				</label>
+			</div>
+		</div>
+		<div class="control-group">
+			<div class="controls">
+				<label for="public" class="checkbox">
+					<input id="public" name="public" value="1" type="checkbox" {{if .Website.Public}} checked="checked" {{end}} /> Public
+				</label>
+			</div>
+		</div>
+		<div class="control-group">
+			<div class="controls">
+				<input type="submit" value="Save" />
+			</div>
+		</div>
 	</form>  
 {{end}}
