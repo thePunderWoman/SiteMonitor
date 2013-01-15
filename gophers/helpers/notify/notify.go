@@ -1,36 +1,45 @@
-package website
+package notify
 
 import (
-	"appengine"
-	"appengine/datastore"
-	"errors"
-	//"log"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
+/*"appengine"
+"appengine/datastore"
+"errors"
+//"log"
+"net/http"
+"strconv"
+"strings"
+"time"*/
 )
 
-type Website struct {
-	ID          int64
-	Name        string
-	URL         string
-	Interval    int
-	LastChecked time.Time
-	Monitoring  bool
-	Status      string
-	Public      bool
+type Notify struct {
+	ID       int64
+	parentID int64
+	Name     string
+	Email    string
 }
 
-func GetAll(r *http.Request) (sites []Website, err error) {
+/*func GetAllBySite(r *http.Request) (sites map[int64]Website) {
 	c := appengine.NewContext(r)
 	q := datastore.NewQuery("website").Order("Name")
 
 	//var sites []QueryResult
-	sites = make([]Website, 0)
-	_, err = q.GetAll(c, &sites)
+	sites = make(map[int64]Website, 0)
+	for t := q.Run(c); ; {
+		var x Website
+		key, err := t.Next(&x)
 
-	return sites, err
+		// Just had to switch this to check before you attempt to do an assignment
+		if err == datastore.Done || err != nil {
+			break
+		}
+		// Also, you can key that array using the IntID() function
+		// of a *Key property. This will return and int64
+		// and you can use this value later to quiery the
+		// datastore.
+		sites[key.IntID()] = x
+
+	}
+	return
 }
 
 func Get(r *http.Request, key int64) (site *Website, err error) {
@@ -116,4 +125,4 @@ func Save(r *http.Request) (err error) {
 	}
 	return
 
-}
+}*/

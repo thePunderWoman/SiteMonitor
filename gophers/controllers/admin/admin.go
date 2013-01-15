@@ -5,6 +5,7 @@ import (
 	"gophers/helpers/website"
 	"gophers/plate"
 	"html/template"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -32,7 +33,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	sites := website.GetAll(r)
+	sites, err := website.GetAll(r)
+	log.Println(err)
 	tmpl.Bag["Sites"] = sites
 	tmpl.Bag["Name"] = session["name"]
 	tmpl.Template = "templates/admin/index.html"

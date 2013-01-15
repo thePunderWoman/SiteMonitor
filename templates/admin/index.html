@@ -44,25 +44,25 @@
 				</tr>
 			</thead>
 			<tbody>
-				{{range $key, $site := .}}
+				{{range .}}
 					<tr>
-						<td>{{$site.Name}}</td>
-						<td>{{$site.URL}}</td>
-						<td>{{$site.Interval}} Mins</td>
-						<td>{{formatDate $site.LastChecked}}</td>
-						<td>{{if $site.Monitoring}}
+						<td>{{.Name}}</td>
+						<td>{{.URL}}</td>
+						<td>{{.Interval}} Mins</td>
+						<td>{{formatDate .LastChecked}}</td>
+						<td>{{if .Monitoring}}
 								Yes
 							{{else}}
 								No
 							{{end}}
 						</td>
-						<td>{{if $site.Public}}
+						<td>{{if .Public}}
 								Yes
 							{{else}}
 								No
 							{{end}}
 						</td>
-						<td>{{$site.Status}}</td>
+						<td>{{.Status}}</td>
 						<td>
 							<div class="btn-group">
 								<a href="#" class="btn dropdown-toggle" data-toggle="dropdown">
@@ -70,8 +70,8 @@
 									<span class="caret"></span>
 								</a>
 								<ul class="dropdown-menu">
-									<li><a href="/edit/{{$site.ID}}">Edit</a></li>
-									<li><a href="#" class="delete-site" data-key="{{$site.ID}}">Delete</a></li>
+									<li><a href="/edit/{{.ID}}">Edit</a></li>
+									<li><a href="#" class="delete-site" data-key="{{.ID}}">Delete</a></li>
 								</ul>
 							</div>
 						</td>
