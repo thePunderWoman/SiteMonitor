@@ -10,8 +10,9 @@ require(
 				$.post('/Delete', { key: key }, function(data) {
 					console.log(data)
 					if(data.success) {
-						$(this).parent().fadeOut('slow',function(){
-							$(this).parent().parent().parent().parent().remove();
+						var row = $(curobj).parent().parent().parent().parent().parent();
+						$(row).fadeOut('slow',function(){
+							$(row).remove();
 						});
 					}
 				},'json')

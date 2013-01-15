@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -56,7 +57,38 @@ func Add(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.Bag["Error"] = error
-	tmpl.Template = "templates/admin/add.html"
+	tmpl.Template = "templates/admin/form.html"
+
+	tmpl.DisplayTemplate()
+}
+
+func Edit(w http.ResponseWriter, r *http.Request) {
+	server := plate.NewServer()
+	var err error
+	var tmpl plate.Template
+
+	params := r.URL.Query()
+	error := params.Get(":error")
+	error, _ = url.QueryUnescape(error)
+
+	tmpl, err = server.Template(w)
+
+	if err != nil {
+		plate.Serve404(w, err.Error())
+		return
+	}
+	var keynum int64
+	keynum, _ = strconv.ParseInt(params.Get(":key"), 10, 64)
+	site, err := website.Get(r, keynum)
+
+	if err != nil {
+		plate.Serve404(w, err.Error())
+		return
+	}
+
+	tmpl.Bag["Website"] = site
+	tmpl.Bag["Error"] = error
+	tmpl.Template = "templates/admin/form.html"
 
 	tmpl.DisplayTemplate()
 }

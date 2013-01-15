@@ -24,7 +24,9 @@ func init() {
 	server.Get("/Admin", admin.Index).Secure()
 	server.Get("/Add", admin.Add).Secure()
 	server.Get("/Add/:error", admin.Add).Secure()
-	server.Post("/Add", admin.Save).Secure()
+	server.Get("/Edit/:key", admin.Edit).Secure()
+	server.Get("/Edit/:key/:error", admin.Edit).Secure()
+	server.Post("/Save", admin.Save).Secure()
 	server.Post("/Delete", admin.Delete).Secure()
 
 	session_key := "your key here"

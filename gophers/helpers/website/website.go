@@ -12,6 +12,7 @@ import (
 )
 
 type Website struct {
+	ID          int64
 	Name        string
 	URL         string
 	Interval    int
@@ -45,14 +46,13 @@ func GetAll(r *http.Request) (sites map[int64]Website) {
 	return
 }
 
-func Get(r *http.Request) (site *Website, err error) {
+func Get(r *http.Request, key int64) (site *Website, err error) {
 
 	c := appengine.NewContext(r)
-	//var keynum int64
-	//keynum, _ = strconv.ParseInt(r.FormValue("key"), 10, 64)
-	k := datastore.NewKey(c, "website", r.FormValue("key"), 0, nil)
+	k := datastore.NewKey(c, "website", "", key, nil)
 	w := new(Website)
 	err = datastore.Get(c, k, w)
+	log.Println(err)
 
 	return w, err
 }
@@ -61,7 +61,7 @@ func Delete(r *http.Request) (err error) {
 	c := appengine.NewContext(r)
 	var keynum int64
 	keynum, _ = strconv.ParseInt(r.FormValue("key"), 10, 64)
-	k := datastore.NewKey(c, "website", "0", keynum, nil)
+	k := datastore.NewKey(c, "website", "", keynum, nil)
 	err = datastore.Delete(c, k)
 	log.Println(err)
 	return
@@ -91,7 +91,7 @@ func Save(r *http.Request) (err error) {
 	}
 
 	var keynum int64
-	keynum, err = strconv.ParseInt(r.FormValue("key"), 10, 64)
+	keynum, err = strconv.ParseInt(r.FormValue("siteID"), 10, 64)
 
 	if err != nil {
 		// new Website
@@ -99,26 +99,34 @@ func Save(r *http.Request) (err error) {
 			Name:        name,
 			URL:         urlstr,
 			Interval:    interval,
-			Monitoring:  true,
+			Monitoring:  monitoring,
 			Status:      "unknown",
 			LastChecked: time.Now(),
-			Public:      false,
+			Public:      public,
 		}
 
-		_, err := datastore.Put(c, datastore.NewIncompleteKey(c, "website", nil), &site)
+		key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "website", nil), &site)
+
+		if err == nil {
+			site.ID = key.IntID()
+			key, err = datastore.Put(c, key, &site)
+		}
+
 		return err
 	} else {
 		// update website
-		k := datastore.NewKey(c, "website", "0", keynum, nil)
-		site := new(Website)
-		err = datastore.Get(c, k, site)
+		k := datastore.NewKey(c, "website", "", keynum, nil)
+		site, err := Get(r, keynum)
+		if err != nil {
+			return err
+		}
 		site.Name = name
 		site.URL = urlstr
 		site.Interval = interval
 		site.Monitoring = monitoring
 		site.Public = public
 
-		_, err := datastore.Put(c, k, site)
+		_, err = datastore.Put(c, k, site)
 		return err
 	}
 	return

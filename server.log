@@ -1,2 +1,1 @@
-2013/01/15 15:35:15 127.0.0.1 - - [2013-01-15 15:35:15.629306 +0000 UTC] "GET /admin HTTP/1.0" 0 3615 "http://localhost:8080/add" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17"
-2013/01/15 15:35:27 127.0.0.1 - - [2013-01-15 15:35:27.192367 +0000 UTC] "POST /Delete HTTP/1.0" 0 17 "http://localhost:8080/admin" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17"
+2013/01/15 16:46:14 127.0.0.1 - - [2013-01-15 16:46:14.814287 +0000 UTC] "GET /admin HTTP/1.0" 0 3631 "http://localhost:8080/edit/5" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17"
