@@ -48,9 +48,9 @@ func GetAll(r *http.Request) (sites map[int64]Website) {
 func Get(r *http.Request) (site *Website, err error) {
 
 	c := appengine.NewContext(r)
-	var keynum int64
-	keynum, _ = strconv.ParseInt(r.FormValue("key"), 10, 64)
-	k := datastore.NewKey(c, "website", "0", keynum, nil)
+	//var keynum int64
+	//keynum, _ = strconv.ParseInt(r.FormValue("key"), 10, 64)
+	k := datastore.NewKey(c, "website", r.FormValue("key"), 0, nil)
 	w := new(Website)
 	err = datastore.Get(c, k, w)
 
@@ -93,7 +93,7 @@ func Save(r *http.Request) (err error) {
 	var keynum int64
 	keynum, err = strconv.ParseInt(r.FormValue("key"), 10, 64)
 
-	if err == nil {
+	if err != nil {
 		// new Website
 		site := Website{
 			Name:        name,
