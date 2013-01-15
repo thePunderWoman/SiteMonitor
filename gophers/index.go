@@ -28,6 +28,10 @@ func init() {
 	server.Get("/Edit/:key/:error", admin.Edit).Secure()
 	server.Post("/Save", admin.Save).Secure()
 	server.Post("/Delete", admin.Delete).Secure()
+	server.Post("/DeleteNotifier", admin.DeleteNotifier).Secure()
+	server.Post("/AddNotifier", admin.AddNotifier).Secure()
+	server.Get("/Emails/:key", admin.GetNotifiers).Secure()
+	server.Get("/Emails/:key/:error", admin.GetNotifiers).Secure()
 
 	session_key := "your key here"
 	http.Handle("/", server.NewSessionHandler(session_key, nil))

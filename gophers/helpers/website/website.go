@@ -4,6 +4,7 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"errors"
+	"gophers/helpers/notify"
 	//"log"
 	"net/http"
 	"strconv"
@@ -116,4 +117,9 @@ func Save(r *http.Request) (err error) {
 	}
 	return
 
+}
+
+func (website Website) GetNotifiers(r *http.Request) (notifiers []notify.Notify, err error) {
+	notifiers, err = notify.GetAllBySite(r, website.ID)
+	return
 }

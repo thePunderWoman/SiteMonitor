@@ -1,1 +1,1 @@
-2013/01/15 18:52:45 127.0.0.1 - - [2013-01-15 18:52:45.534103 +0000 UTC] "GET /admin HTTP/1.0" 0 4261 "http://localhost:8080/edit/5" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17"
+2013/01/15 22:17:11 127.0.0.1 - - [2013-01-15 22:17:11.787853 +0000 UTC] "GET /admin HTTP/1.0" 0 4361 "http://localhost:8080/emails/5" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17"
