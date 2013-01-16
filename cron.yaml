@@ -1,0 +1,4 @@
+cron:
+- description: Site Status Checker
+  url: /check
+  schedule: every 5 minutes

@@ -38,6 +38,9 @@ func init() {
 	server.Get("/Settings/:error", admin.Settings).Secure()
 	server.Post("/Settings", admin.SaveSettings).Secure()
 
+	//Cron Task
+	server.Get("/Check", admin.Check)
+
 	session_key := "your key here"
 	http.Handle("/", server.NewSessionHandler(session_key, nil))
 }

@@ -7,7 +7,7 @@ import (
 	"gophers/helpers/website"
 	"gophers/plate"
 	"html/template"
-	//"log"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -216,4 +216,9 @@ func SaveSettings(w http.ResponseWriter, r *http.Request) {
 
 func ErrorPage(w http.ResponseWriter, r *http.Request) {
 	plate.Serve404(w, "")
+}
+
+func Check(w http.ResponseWriter, r *http.Request) {
+	err := website.CheckSites()
+	fmt.Println("Checking sites")
 }

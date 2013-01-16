@@ -7,14 +7,13 @@ import (
 	"net/http"
 )
 
-func Get(url string, r *http.Request) (buf bytes.Buffer, err error) {
+func Get(url string, r *http.Request) (status bool) {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return
 	}
 
-	req.Header.Set("Content-Type", "application/json")
 	t := &urlfetch.Transport{Context: appengine.NewContext(r)}
 
 	trip, err := t.RoundTrip(req)
@@ -24,7 +23,12 @@ func Get(url string, r *http.Request) (buf bytes.Buffer, err error) {
 
 	defer trip.Body.Close()
 
+	var buf bytes.Buffer
 	buf.ReadFrom(trip.Body)
 
+	status = false
+	if buf.Len() > 0 {
+		status = true
+	}
 	return
 }

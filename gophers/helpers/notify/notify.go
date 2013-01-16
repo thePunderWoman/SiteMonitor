@@ -4,7 +4,9 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"errors"
-	//"log"
+	//"gophers/helpers/serversettings"
+	"gophers/helpers/website"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -69,4 +71,9 @@ func Save(r *http.Request) (err error) {
 
 	return err
 
+}
+
+func (notifier *Notify) Notify(r *http.Request, w *website.Website) {
+	// email person that site is down
+	log.Println("Emailed " + notifier.Name + " that " + w.Name + " is down.")
 }

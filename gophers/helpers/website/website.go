@@ -5,6 +5,7 @@ import (
 	"appengine/datastore"
 	"errors"
 	"gophers/helpers/notify"
+	"gophers/helpers/rest"
 	//"log"
 	"net/http"
 	"strconv"
@@ -43,6 +44,24 @@ func GetPublic(r *http.Request) (sites []Website, err error) {
 	_, err = q.GetAll(c, &sites)
 
 	return sites, err
+}
+
+func CheckSites(r *http.Request) (err error) {
+	c := appengine.NewContext(r)
+	now := time.Now()
+	q := datastore.NewQuery("website").Filter("Monitoring =", true)
+	//var sites []QueryResult
+	sitelist = make([]Website, 0)
+	_, err = q.GetAll(c, &sitelist)
+	if err == nil {
+		for i := 0; i < len(sitelist); i++ {
+			dur := time.Duration(sitelist[i].Inteval) * time.Minute
+			if sitelist[i].lastChecked <= (now - dur) {
+				sites = sitelist[i].Check(r)
+			}
+		}
+	}
+	return err
 }
 
 func Get(r *http.Request, key int64) (site *Website, err error) {
@@ -133,4 +152,24 @@ func Save(r *http.Request) (err error) {
 func (website Website) GetNotifiers(r *http.Request) (notifiers []notify.Notify, err error) {
 	notifiers, err = notify.GetAllBySite(r, website.ID)
 	return
+}
+
+func (website Website) Check(r *http.Request) {
+	c := appengine.NewContext(r)
+	k := datastore.NewKey(c, "website", "", website.ID, nil)
+	status := rest.Get(website.URL)
+	website.LastChecked = time.Now()
+	if status {
+		website.Status = "up"
+		_, err = datastore.Put(c, k, website)
+	} else {
+		website.Status = "down"
+		_, err = datastore.Put(c, k, website)
+		notifiers, err := website.GetNotifiers(r)
+		if err == nil {
+			for i := 0; i < len(notifiers); i++ {
+				notifiers[i].Notify(r)
+			}
+		}
+	}
 }
