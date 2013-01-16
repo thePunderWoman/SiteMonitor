@@ -52,6 +52,12 @@
 			</div>
 		</div>
 		<div class="control-group">
+			<label for="username" class="control-label">Username</label>
+			<div class="controls">
+				<input id="username" name="username" placeholder="Enter username" type="text" {{if .Settings.Username}} value="{{.Settings.Username}}" {{end}} />
+			</div>
+		</div>
+		<div class="control-group">
 			<label for="password" class="control-label">Password</label>
 			<div class="controls">
 				<input id="password" name="password" placeholder="Enter password" type="password" {{if .Settings.Password}} value="{{.Settings.Password}}" {{end}} />

@@ -7,7 +7,7 @@ import (
 	"gophers/helpers/website"
 	"gophers/plate"
 	"html/template"
-	"log"
+	//"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -160,6 +160,14 @@ func GetNotifiers(w http.ResponseWriter, r *http.Request) {
 	tmpl.DisplayTemplate()
 }
 
+func TestSend(w http.ResponseWriter, r *http.Request) {
+	notifier, err := notify.Get(r)
+	if err == nil {
+		notifier.Notify(r, "Test", "http://www.test.com", time.Now())
+	}
+	fmt.Fprint(w, "Sending Email")
+}
+
 func AddNotifier(w http.ResponseWriter, r *http.Request) {
 	err := notify.Save(r)
 	parentID := r.FormValue("parentID")
@@ -219,6 +227,6 @@ func ErrorPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func Check(w http.ResponseWriter, r *http.Request) {
-	err := website.CheckSites()
-	fmt.Println("Checking sites")
+	website.CheckSites(r)
+	fmt.Fprint(w, "Checking sites")
 }

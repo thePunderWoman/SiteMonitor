@@ -12,6 +12,7 @@ type Setting struct {
 	Server   string
 	Email    string
 	SSL      bool
+	Username string
 	Password string
 	Port     int
 }
@@ -30,6 +31,7 @@ func Save(r *http.Request) (err error) {
 
 	server := r.FormValue("server")
 	email := r.FormValue("email")
+	username := r.FormValue("username")
 	SSL, err := strconv.ParseBool(r.FormValue("ssl"))
 	if err != nil {
 		SSL = false
@@ -47,6 +49,7 @@ func Save(r *http.Request) (err error) {
 		Server:   server,
 		Email:    email,
 		SSL:      SSL,
+		Username: username,
 		Password: password,
 		Port:     port,
 	}

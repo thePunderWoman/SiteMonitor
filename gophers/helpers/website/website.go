@@ -51,13 +51,13 @@ func CheckSites(r *http.Request) (err error) {
 	now := time.Now()
 	q := datastore.NewQuery("website").Filter("Monitoring =", true)
 	//var sites []QueryResult
-	sitelist = make([]Website, 0)
-	_, err = q.GetAll(c, &sitelist)
+	sites := make([]Website, 0)
+	_, err = q.GetAll(c, &sites)
 	if err == nil {
-		for i := 0; i < len(sitelist); i++ {
-			dur := time.Duration(sitelist[i].Inteval) * time.Minute
-			if sitelist[i].lastChecked <= (now - dur) {
-				sites = sitelist[i].Check(r)
+		for i := 0; i < len(sites); i++ {
+			dur := time.Duration(sites[i].Interval) * time.Minute
+			if now.Sub(sites[i].LastChecked) >= dur {
+				sites[i].Check(r)
 			}
 		}
 	}
@@ -157,18 +157,18 @@ func (website Website) GetNotifiers(r *http.Request) (notifiers []notify.Notify,
 func (website Website) Check(r *http.Request) {
 	c := appengine.NewContext(r)
 	k := datastore.NewKey(c, "website", "", website.ID, nil)
-	status := rest.Get(website.URL)
+	status := rest.Get(website.URL, r)
 	website.LastChecked = time.Now()
 	if status {
 		website.Status = "up"
-		_, err = datastore.Put(c, k, website)
+		_, _ = datastore.Put(c, k, &website)
 	} else {
 		website.Status = "down"
-		_, err = datastore.Put(c, k, website)
+		_, err := datastore.Put(c, k, &website)
 		notifiers, err := website.GetNotifiers(r)
 		if err == nil {
 			for i := 0; i < len(notifiers); i++ {
-				notifiers[i].Notify(r)
+				notifiers[i].Notify(r, website.Name, website.URL, website.LastChecked)
 			}
 		}
 	}
