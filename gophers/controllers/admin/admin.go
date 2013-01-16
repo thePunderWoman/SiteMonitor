@@ -3,6 +3,7 @@ package admin
 import (
 	"fmt"
 	"gophers/helpers/notify"
+	"gophers/helpers/serversettings"
 	"gophers/helpers/website"
 	"gophers/plate"
 	"html/template"
@@ -175,6 +176,41 @@ func DeleteNotifier(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "{\"success\":true}")
 	} else {
 		fmt.Fprint(w, "{\"success\":false}")
+	}
+}
+
+func Settings(w http.ResponseWriter, r *http.Request) {
+	server := plate.NewServer()
+
+	var err error
+	var tmpl plate.Template
+
+	params := r.URL.Query()
+	error := params.Get(":error")
+	error, _ = url.QueryUnescape(error)
+
+	tmpl, err = server.Template(w)
+
+	if err != nil {
+		plate.Serve404(w, err.Error())
+		return
+	}
+
+	settings, err := serversettings.Get(r)
+
+	tmpl.Bag["Settings"] = settings
+	tmpl.Bag["Error"] = error
+	tmpl.Template = "templates/admin/settings.html"
+
+	tmpl.DisplayTemplate()
+}
+
+func SaveSettings(w http.ResponseWriter, r *http.Request) {
+	err := serversettings.Save(r)
+	if err != nil {
+		http.Redirect(w, r, "/settings/"+url.QueryEscape("There was a problem saving to the datastore: "+err.Error()), http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/settings", http.StatusFound)
 	}
 }
 

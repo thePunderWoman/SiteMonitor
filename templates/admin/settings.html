@@ -1,9 +1,5 @@
 {{define "content"}}
-	{{with .Website}}
-		<h3>Edit {{.Name}}</h3>
-	{{else}}
-		<h3>Add a Website</h3>
-	{{end}}
+	<h3>Outgoing Email Settings</h3>
 	<div class="navbar">
 		<div class="navbar-inner">
 			<ul class="nav">
@@ -42,40 +38,42 @@
 			{{.}}
 		</div>
 	{{end}}
-	<form class="form-horizontal" action="/save" method="post">
-		{{if .Website.ID}}
-			<input type="hidden" name="siteID" id="siteID" value="{{.Website.ID}}" />
-		{{end}}
+	<form class="form-horizontal" action="/settings" method="post">
 		<div class="control-group">
-			<label for="name" class="control-label">Name</label>
+			<label for="server" class="control-label">Server Address</label>
 			<div class="controls">
-				<input id="name" name="name" placeholder="Enter a Name" type="text" {{if .Website.Name}} value="{{.Website.Name}}" {{end}} />
+				<input id="server" name="server" placeholder="Enter the Server Address" type="text" {{if .Settings.Server}} value="{{.Settings.Server}}" {{end}} />
 			</div>
 		</div>
 		<div class="control-group">
-			<label for="url" class="control-label">URL</label>
+			<label for="email" class="control-label">Email Address</label>
 			<div class="controls">
-				<input id="url" name="url" placeholder="Enter a full website URL" type="text" {{if .Website.URL}} value="{{.Website.URL}}" {{end}} />
+				<input id="email" name="email" placeholder="Enter the email address" type="email" {{if .Settings.Email}} value="{{.Settings.Email}}" {{end}} />
 			</div>
 		</div>
 		<div class="control-group">
-			<label for="interval" class="control-label">Interval (minutes)</label>
+			<label for="password" class="control-label">Password</label>
 			<div class="controls">
-				<input id="interval" name="interval" placeholder="Enter an interval in mins" type="number" {{if .Website.Interval}} value="{{.Website.Interval}}" {{end}} />
+				<input id="password" name="password" placeholder="Enter password" type="password" {{if .Settings.Password}} value="{{.Settings.Password}}" {{end}} />
 			</div>
 		</div>
 		<div class="control-group">
+			<label class="control-label">Require SSL</label>
 			<div class="controls">
-				<label for="monitoring" class="checkbox">
-					<input id="monitoring" name="monitoring" value="1" type="checkbox" {{if .Website.Monitoring}} checked="checked" {{end}} /> Monitoring
+				<label class="radio">
+				  <input type="radio" name="ssl" id="ssl1" value="true" {{if .Settings.SSL}} checked {{end}}>
+				  Yes
+				</label>
+				<label class="radio">
+				  <input type="radio" name="ssl" id="ssl2" value="false" {{if not .Settings.SSL}} checked {{end}}>
+				  No
 				</label>
 			</div>
 		</div>
 		<div class="control-group">
+			<label for="port" class="control-label">Port</label>
 			<div class="controls">
-				<label for="public" class="checkbox">
-					<input id="public" name="public" value="1" type="checkbox" {{if .Website.Public}} checked="checked" {{end}} /> Public
-				</label>
+				<input id="port" name="port" placeholder="Enter the port number" type="number" {{if .Settings.Port}} value="{{.Settings.Port}}" {{end}} />
 			</div>
 		</div>
 		<div class="control-group">

@@ -33,6 +33,11 @@ func init() {
 	server.Get("/Emails/:key", admin.GetNotifiers).Secure()
 	server.Get("/Emails/:key/:error", admin.GetNotifiers).Secure()
 
+	//Setting Routes
+	server.Get("/Settings", admin.Settings).Secure()
+	server.Get("/Settings/:error", admin.Settings).Secure()
+	server.Post("/Settings", admin.SaveSettings).Secure()
+
 	session_key := "your key here"
 	http.Handle("/", server.NewSessionHandler(session_key, nil))
 }
