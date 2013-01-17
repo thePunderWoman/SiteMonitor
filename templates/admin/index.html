@@ -50,7 +50,7 @@
 						<td>{{.Name}}</td>
 						<td>{{.URL}}</td>
 						<td>{{.Interval}} Mins</td>
-						<td>{{formatDate .LastChecked}}</td>
+						<td>{{if not .Status.Checked.IsZero}}{{formatDate .Status.Checked}}{{else}}Never{{end}}</td>
 						<td>{{if .Monitoring}}
 								Yes
 							{{else}}
@@ -63,7 +63,7 @@
 								No
 							{{end}}
 						</td>
-						<td class="center"><span class="status {{.Status}}" title="{{.Status}}"></span></td>
+						<td class="center"><span class="status {{.Status.Status}}" title="{{.Status.Status}}"></span></td>
 						<td>
 							<div class="btn-group">
 								<a href="#" class="btn dropdown-toggle" data-toggle="dropdown">

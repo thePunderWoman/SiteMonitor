@@ -4,6 +4,7 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"errors"
+	"gophers/helpers/history"
 	"gophers/helpers/notify"
 	"gophers/helpers/rest"
 	"log"
@@ -14,14 +15,13 @@ import (
 )
 
 type Website struct {
-	ID          int64
-	Name        string
-	URL         string
-	Interval    int
-	LastChecked time.Time
-	Monitoring  bool
-	Status      string
-	Public      bool
+	ID         int64
+	Name       string
+	URL        string
+	Interval   int
+	Monitoring bool
+	Status     history.History
+	Public     bool
 }
 
 func GetAll(r *http.Request) (sites []Website, err error) {
@@ -31,6 +31,9 @@ func GetAll(r *http.Request) (sites []Website, err error) {
 	//var sites []QueryResult
 	sites = make([]Website, 0)
 	_, err = q.GetAll(c, &sites)
+	for i := 0; i < len(sites); i++ {
+		sites[i].Status, err = history.GetStatus(r, sites[i].ID)
+	}
 
 	return sites, err
 }
@@ -42,6 +45,9 @@ func GetPublic(r *http.Request) (sites []Website, err error) {
 	//var sites []QueryResult
 	sites = make([]Website, 0)
 	_, err = q.GetAll(c, &sites)
+	for i := 0; i < len(sites); i++ {
+		sites[i].Status, err = history.GetStatus(r, sites[i].ID)
+	}
 
 	return sites, err
 }
@@ -49,15 +55,18 @@ func GetPublic(r *http.Request) (sites []Website, err error) {
 func CheckSites(r *http.Request) (err error) {
 	c := appengine.NewContext(r)
 	now := time.Now()
-	q := datastore.NewQuery("website").Filter("Monitoring =", true)
-	//var sites []QueryResult
+	q := datastore.NewQuery("website").Filter("Monitoring =", true).KeysOnly()
+
+	//Just get keys
 	sites := make([]Website, 0)
-	_, err = q.GetAll(c, &sites)
+	keys, err := q.GetAll(c, &sites)
 	if err == nil {
-		for i := 0; i < len(sites); i++ {
-			dur := time.Duration(sites[i].Interval) * time.Minute
-			if now.Sub(sites[i].LastChecked) >= dur {
-				sites[i].Check(r)
+		for i := 0; i < len(keys); i++ {
+			site, _ := Get(r, keys[i].IntID())
+			dur := time.Duration(site.Interval) * time.Minute
+
+			if now.Sub(site.Status.Checked) >= dur {
+				site.Check(r)
 			}
 		}
 	}
@@ -70,7 +79,9 @@ func Get(r *http.Request, key int64) (site *Website, err error) {
 	k := datastore.NewKey(c, "website", "", key, nil)
 	w := new(Website)
 	err = datastore.Get(c, k, w)
-
+	if err == nil {
+		w.Status, err = history.GetStatus(r, w.ID)
+	}
 	return w, err
 }
 
@@ -112,13 +123,11 @@ func Save(r *http.Request) (err error) {
 	if err != nil {
 		// new Website
 		site := Website{
-			Name:        name,
-			URL:         urlstr,
-			Interval:    interval,
-			Monitoring:  monitoring,
-			Status:      "unknown",
-			LastChecked: time.Now(),
-			Public:      public,
+			Name:       name,
+			URL:        urlstr,
+			Interval:   interval,
+			Monitoring: monitoring,
+			Public:     public,
 		}
 
 		key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "website", nil), &site)
@@ -155,34 +164,32 @@ func (website Website) GetNotifiers(r *http.Request) (notifiers []notify.Notify,
 }
 
 func (website Website) Check(r *http.Request) {
-	c := appengine.NewContext(r)
-	k := datastore.NewKey(c, "website", "", website.ID, nil)
 	status := rest.Get(website.URL, r)
-	website.LastChecked = time.Now()
+	prevStatus := website.Status.Status
+	var err error
 	if status {
-		if website.Status == "down" {
-			err := website.EmailNotifiers(r, "up")
+		website.Status, err = history.Log(r, website.ID, time.Now(), "up")
+		if prevStatus == "down" {
+			err := website.EmailNotifiers(r)
 			if err != nil {
 				log.Println(err)
 			}
 		}
-		website.Status = "up"
-		_, _ = datastore.Put(c, k, &website)
 	} else {
-		website.Status = "down"
-		_, err := datastore.Put(c, k, &website)
-		err = website.EmailNotifiers(r, "down")
+		website.Status, err = history.Log(r, website.ID, time.Now(), "down")
+		err = website.EmailNotifiers(r)
 		if err != nil {
 			log.Println(err)
 		}
 	}
+
 }
 
-func (website Website) EmailNotifiers(r *http.Request, template string) (err error) {
+func (website Website) EmailNotifiers(r *http.Request) (err error) {
 	notifiers, err := website.GetNotifiers(r)
 	if err == nil {
 		for i := 0; i < len(notifiers); i++ {
-			notifiers[i].Notify(r, website.Name, website.URL, website.LastChecked, template)
+			notifiers[i].Notify(r, website.Name, website.URL, website.Status.Checked, website.Status.Status)
 		}
 	}
 	return
