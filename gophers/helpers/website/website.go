@@ -6,7 +6,7 @@ import (
 	"errors"
 	"gophers/helpers/notify"
 	"gophers/helpers/rest"
-	//"log"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -160,16 +160,30 @@ func (website Website) Check(r *http.Request) {
 	status := rest.Get(website.URL, r)
 	website.LastChecked = time.Now()
 	if status {
+		if website.Status == "down" {
+			err := website.EmailNotifiers(r, "up")
+			if err != nil {
+				log.Println(err)
+			}
+		}
 		website.Status = "up"
 		_, _ = datastore.Put(c, k, &website)
 	} else {
 		website.Status = "down"
 		_, err := datastore.Put(c, k, &website)
-		notifiers, err := website.GetNotifiers(r)
-		if err == nil {
-			for i := 0; i < len(notifiers); i++ {
-				notifiers[i].Notify(r, website.Name, website.URL, website.LastChecked)
-			}
+		err = website.EmailNotifiers(r, "down")
+		if err != nil {
+			log.Println(err)
 		}
 	}
+}
+
+func (website Website) EmailNotifiers(r *http.Request, template string) (err error) {
+	notifiers, err := website.GetNotifiers(r)
+	if err == nil {
+		for i := 0; i < len(notifiers); i++ {
+			notifiers[i].Notify(r, website.Name, website.URL, website.LastChecked, template)
+		}
+	}
+	return
 }

@@ -163,7 +163,7 @@ func GetNotifiers(w http.ResponseWriter, r *http.Request) {
 func TestSend(w http.ResponseWriter, r *http.Request) {
 	notifier, err := notify.Get(r)
 	if err == nil {
-		notifier.Notify(r, "Test", "http://www.test.com", time.Now())
+		notifier.Notify(r, "Test", "http://www.test.com", time.Now(), "up")
 	}
 	fmt.Fprint(w, "Sending Email")
 }
