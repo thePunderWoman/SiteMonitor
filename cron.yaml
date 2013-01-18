@@ -1,4 +1,4 @@
 cron:
 - description: Site Status Checker
   url: /Check
-  schedule: every 5 minutes
+  schedule: every 1 minutes

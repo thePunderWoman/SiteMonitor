@@ -45,6 +45,16 @@ func GetStatus(r *http.Request, siteID int64) (status History, err error) {
 	return status, err
 }
 
+func Uptime(r *http.Request, siteID int64) (uptime float32) {
+	c := appengine.NewContext(r)
+	q := datastore.NewQuery("history").Filter("SiteID =", siteID)
+	qUp := datastore.NewQuery("history").Filter("SiteID =", siteID).Filter("Status =", "up")
+	total, _ := q.Count(c)
+	uptotal, _ := qUp.Count(c)
+	uptime = (float32(uptotal) / float32(total)) * 100.0
+	return uptime
+}
+
 func Log(r *http.Request, siteID int64, checked time.Time, status string) (logentry History, err error) {
 	c := appengine.NewContext(r)
 

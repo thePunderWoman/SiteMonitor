@@ -24,6 +24,7 @@ type Website struct {
 	Public        bool
 	EmailInterval int
 	LogDays       int
+	Uptime        float32
 }
 
 type WebsiteSave struct {
@@ -46,6 +47,7 @@ func GetAll(r *http.Request) (sites []Website, err error) {
 	_, err = q.GetAll(c, &sites)
 	for i := 0; i < len(sites); i++ {
 		sites[i].Status, err = history.GetStatus(r, sites[i].ID)
+		sites[i].GetUptime(r)
 	}
 
 	return sites, err
@@ -60,6 +62,7 @@ func GetPublic(r *http.Request) (sites []Website, err error) {
 	_, err = q.GetAll(c, &sites)
 	for i := 0; i < len(sites); i++ {
 		sites[i].Status, err = history.GetStatus(r, sites[i].ID)
+		sites[i].GetUptime(r)
 	}
 
 	return sites, err
@@ -102,6 +105,7 @@ func Get(r *http.Request, key int64) (site Website, sitesave WebsiteSave, err er
 		site.EmailInterval = sitesave.EmailInterval
 		site.LogDays = sitesave.LogDays
 		site.Status, err = history.GetStatus(r, sitesave.ID)
+		site.GetUptime(r)
 	}
 	return site, sitesave, err
 }
@@ -189,6 +193,10 @@ func Save(r *http.Request) (err error) {
 	}
 	return
 
+}
+
+func (website *Website) GetUptime(r *http.Request) {
+	website.Uptime = history.Uptime(r, website.ID)
 }
 
 func (website Website) GetNotifiers(r *http.Request) (notifiers []notify.Notify, err error) {

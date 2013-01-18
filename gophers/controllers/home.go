@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	//	"fmt"
+	"fmt"
 	"gophers/helpers/website"
 	"gophers/plate"
 	"html/template"
@@ -27,6 +27,9 @@ func Index(w http.ResponseWriter, r *http.Request) {
 			layout := "Mon, 01/02/06, 3:04PM MST"
 			Local, _ := time.LoadLocation("US/Central")
 			return dt.In(Local).Format(layout)
+		},
+		"formatDecimal": func(dc float32) string {
+			return fmt.Sprintf("%.2f", dc)
 		},
 	}
 

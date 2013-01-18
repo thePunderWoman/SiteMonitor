@@ -33,6 +33,9 @@ func Index(w http.ResponseWriter, r *http.Request) {
 			Local, _ := time.LoadLocation("US/Central")
 			return dt.In(Local).Format(layout)
 		},
+		"formatDecimal": func(dc float32) string {
+			return fmt.Sprintf("%.2f", dc)
+		},
 	}
 
 	sites, err := website.GetAll(r)

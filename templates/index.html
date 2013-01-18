@@ -3,7 +3,7 @@
 	{{with .Sites}}
 		<ul class="sites">
 			{{range .}}
-				<li><span class="status {{.Status.Status}}" title="{{.Status.Status}}"></span> <a href="{{.URL}}" target="_blank">{{.Name}}</a> ({{.URL}}) - Last Checked {{if not .Status.Checked.IsZero}}{{formatDate .Status.Checked}}{{else}}Never{{end}}</li>
+				<li><span class="status {{.Status.Status}}" title="{{.Status.Status}}"></span> <a href="{{.URL}}" target="_blank">{{.Name}}</a> ({{.URL}}) - Last Checked {{if not .Status.Checked.IsZero}}{{formatDate .Status.Checked}}{{else}}Never{{end}} - {{formatDecimal .Uptime}}% Uptime in the last {{.LogDays}} days</li>
 			{{end}}
 		</ul>
 	{{end}}
