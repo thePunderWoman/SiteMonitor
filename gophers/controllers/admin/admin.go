@@ -8,6 +8,7 @@ import (
 	"gophers/plate"
 	"html/template"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -34,7 +35,10 @@ func Index(w http.ResponseWriter, r *http.Request) {
 			return dt.In(Local).Format(layout)
 		},
 		"formatDecimal": func(dc float32) string {
-			return fmt.Sprintf("%.2f", dc)
+			if !math.IsNaN(float64(dc)) {
+				return fmt.Sprintf("%.2f", dc) + "%"
+			}
+			return "-"
 		},
 	}
 
@@ -63,6 +67,14 @@ func Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tmpl.FuncMap = template.FuncMap{
+		"daysComparison": func(daysa int, daysb int) bool {
+			x := daysa == daysb
+			return x
+		},
+	}
+
+	tmpl.Bag["Website"] = new(website.Website)
 	tmpl.Bag["Error"] = error
 	tmpl.Template = "templates/admin/form.html"
 

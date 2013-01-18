@@ -14,6 +14,7 @@ type History struct {
 	SiteID  int64
 	Checked time.Time
 	Status  string
+	Emailed bool
 }
 
 func GetHistory(r *http.Request, siteID int64, page int, perpage int) (logentries []History, err error) {
@@ -45,6 +46,18 @@ func GetStatus(r *http.Request, siteID int64) (status History, err error) {
 	return status, err
 }
 
+func GetLastEmail(r *http.Request, siteID int64) (logentry History, err error) {
+	c := appengine.NewContext(r)
+	q := datastore.NewQuery("history").Filter("SiteID =", siteID).Filter("Emailed =", true).Order("-Checked").Limit(1)
+	for t := q.Run(c); ; {
+		_, err := t.Next(&logentry)
+		if err == datastore.Done || err != nil {
+			break
+		}
+	}
+	return
+}
+
 func Uptime(r *http.Request, siteID int64) (uptime float32) {
 	c := appengine.NewContext(r)
 	q := datastore.NewQuery("history").Filter("SiteID =", siteID)
@@ -55,7 +68,7 @@ func Uptime(r *http.Request, siteID int64) (uptime float32) {
 	return uptime
 }
 
-func Log(r *http.Request, siteID int64, checked time.Time, status string) (logentry History, err error) {
+func Log(r *http.Request, siteID int64, checked time.Time, status string, emailed bool) (logentry History, err error) {
 	c := appengine.NewContext(r)
 
 	parentKey := datastore.NewKey(c, "website", "", siteID, nil)
@@ -65,6 +78,7 @@ func Log(r *http.Request, siteID int64, checked time.Time, status string) (logen
 		SiteID:  siteID,
 		Checked: checked,
 		Status:  status,
+		Emailed: emailed,
 	}
 
 	key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "history", parentKey), &logentry)

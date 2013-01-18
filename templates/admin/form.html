@@ -1,6 +1,6 @@
 {{define "content"}}
-	{{with .Website}}
-		<h3>Edit {{.Name}}</h3>
+	{{if .Website.ID}}
+		<h3>Edit {{.Website.Name}}</h3>
 	{{else}}
 		<h3>Add a Website</h3>
 	{{end}}
@@ -65,9 +65,22 @@
 			</div>
 		</div>
 		<div class="control-group">
-			<label for="emailinterval" class="control-label">Downtime Email Interval (minutes)</label>
+			<label for="emailinterval" class="control-label">Downtime Email Frequency</label>
 			<div class="controls">
-				<input id="emailinterval" name="emailinterval" placeholder="Enter an interval in mins" type="number" {{if .Website.EmailInterval}} value="{{.Website.EmailInterval}}" {{end}} />
+				<select name="emailinterval" id="emailinterval">
+					<option value="1" {{if daysComparison .Website.EmailInterval 1}}selected{{end}}>Every Interval</option>
+					<option value="2" {{if daysComparison .Website.EmailInterval 2}}selected{{end}}>Every Other Interval</option>
+					<option value="3" {{if daysComparison .Website.EmailInterval 3}}selected{{end}}>Every 3 Intervals</option>
+					<option value="4" {{if daysComparison .Website.EmailInterval 4}}selected{{end}}>Every 4 Intervals</option>
+					<option value="5" {{if daysComparison .Website.EmailInterval 5}}selected{{end}}>Every 5 Intervals</option>
+					<option value="6" {{if daysComparison .Website.EmailInterval 6}}selected{{end}}>Every 6 Intervals</option>
+					<option value="7" {{if daysComparison .Website.EmailInterval 7}}selected{{end}}>Every 7 Intervals</option>
+					<option value="8" {{if daysComparison .Website.EmailInterval 8}}selected{{end}}>Every 8 Intervals</option>
+					<option value="9" {{if daysComparison .Website.EmailInterval 9}}selected{{end}}>Every 9 Intervals</option>
+					<option value="10" {{if daysComparison .Website.EmailInterval 10}}selected{{end}}>Every 10 Intervals</option>
+					<option value="11" {{if daysComparison .Website.EmailInterval 11}}selected{{end}}>Every 11 Intervals</option>
+					<option value="12" {{if daysComparison .Website.EmailInterval 12}}selected{{end}}>Every 12 Intervals</option>
+				</select>
 			</div>
 		</div>
 		<div class="control-group">

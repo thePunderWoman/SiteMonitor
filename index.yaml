@@ -12,12 +12,26 @@ indexes:
 
 - kind: history
   properties:
+  - name: Emailed
+  - name: SiteID
+  - name: Checked
+    direction: desc
+
+- kind: history
+  properties:
   - name: SiteID
   - name: Checked
 
 - kind: history
   properties:
   - name: SiteID
+  - name: Checked
+    direction: desc
+
+- kind: history
+  properties:
+  - name: SiteID
+  - name: Status !
   - name: Checked
     direction: desc
 

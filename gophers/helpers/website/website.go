@@ -38,6 +38,10 @@ type WebsiteSave struct {
 	LogDays       int
 }
 
+func (website Website) IntervalMins() int {
+	return website.Interval * website.EmailInterval
+}
+
 func GetAll(r *http.Request) (sites []Website, err error) {
 	c := appengine.NewContext(r)
 	q := datastore.NewQuery("website").Order("Name")
@@ -125,9 +129,6 @@ func Save(r *http.Request) (err error) {
 	urlstr := r.FormValue("url")
 	interval, err := strconv.Atoi(r.FormValue("interval"))
 	emailInterval, err := strconv.Atoi(r.FormValue("emailinterval"))
-	if err != nil || emailInterval < interval {
-		emailInterval = interval
-	}
 	logdays, err := strconv.Atoi(r.FormValue("logdays"))
 	if err != nil || logdays < 1 {
 		logdays = 1
@@ -209,18 +210,22 @@ func (website *Website) Check(r *http.Request) {
 	prevStatus := website.Status.Status
 	var err error
 	if status {
-		website.Status, err = history.Log(r, website.ID, time.Now(), "up")
-		if prevStatus == "down" {
+		send := prevStatus == "down"
+		website.Status, err = history.Log(r, website.ID, time.Now(), "up", send)
+		if send {
 			err := website.EmailNotifiers(r)
 			if err != nil {
 				log.Println(err)
 			}
 		}
 	} else {
-		website.Status, err = history.Log(r, website.ID, time.Now(), "down")
-		err = website.EmailNotifiers(r)
-		if err != nil {
-			log.Println(err)
+		send := (prevStatus == "up") || (website.OkToSend(r))
+		website.Status, err = history.Log(r, website.ID, time.Now(), "down", send)
+		if send {
+			err = website.EmailNotifiers(r)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 	}
 
@@ -239,4 +244,14 @@ func (website Website) EmailNotifiers(r *http.Request) (err error) {
 func (website Website) GetHistory(r *http.Request, page int, perpage int) (logs []history.History, err error) {
 	logs, err = history.GetHistory(r, website.ID, page, perpage)
 	return
+}
+
+func (website Website) OkToSend(r *http.Request) bool {
+	lastChange, err := history.GetLastEmail(r, website.ID)
+	if err != nil {
+		return true
+	}
+	sinceLast := time.Now().Sub(lastChange.Checked).Minutes()
+	dur := (time.Duration(website.Interval*website.EmailInterval) * time.Minute).Minutes()
+	return sinceLast > dur
 }

@@ -5,6 +5,7 @@ import (
 	"gophers/helpers/website"
 	"gophers/plate"
 	"html/template"
+	"math"
 	"net/http"
 	"time"
 )
@@ -29,7 +30,10 @@ func Index(w http.ResponseWriter, r *http.Request) {
 			return dt.In(Local).Format(layout)
 		},
 		"formatDecimal": func(dc float32) string {
-			return fmt.Sprintf("%.2f", dc)
+			if !math.IsNaN(float64(dc)) {
+				return fmt.Sprintf("%.2f", dc) + "%"
+			}
+			return "-"
 		},
 	}
 

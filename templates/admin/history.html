@@ -36,6 +36,7 @@
 				<tr>
 					<th>Checked</th>
 					<th>Status</th>
+					<th>Email Sent</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -43,6 +44,7 @@
 					<tr>
 						<td>{{formatDate .Checked}}</td>
 						<td class="center"><span class="status {{.Status}}" title="{{.Status}}"></span></td>
+						<td>{{if .Emailed}}Yes{{else}}No{{end}}</td>
 					</tr>
 				{{end}}
 			</tbody>
