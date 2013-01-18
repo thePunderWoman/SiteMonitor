@@ -37,6 +37,8 @@
 					<th>Name</th>
 					<th>URL</th>
 					<th>Interval</th>
+					<th>Email Frequency</th>
+					<th>Days of Log Entries kept</th>
 					<th class="date">Last Checked</th>
 					<th>Monitoring</th>
 					<th>Public</th>
@@ -50,6 +52,8 @@
 						<td>{{.Name}}</td>
 						<td>{{.URL}}</td>
 						<td>{{.Interval}} Mins</td>
+						<td>{{.EmailInterval}} Mins</td>
+						<td>{{.LogDays}} Days</td>
 						<td>{{if not .Status.Checked.IsZero}}{{formatDate .Status.Checked}}{{else}}Never{{end}}</td>
 						<td>{{if .Monitoring}}
 								Yes
@@ -73,6 +77,7 @@
 								<ul class="dropdown-menu">
 									<li><a href="/edit/{{.ID}}">Edit</a></li>
 									<li><a href="/emails/{{.ID}}">Email List</a></li>
+									<li><a href="/history/{{.ID}}/1/100">View History</a></li>
 									<li><a href="#" class="delete-site" data-key="{{.ID}}">Delete</a></li>
 								</ul>
 							</div>

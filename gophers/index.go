@@ -33,6 +33,8 @@ func init() {
 	//server.Get("/TestSend/:parent/:key", admin.TestSend).Secure()
 	server.Get("/Emails/:key", admin.GetNotifiers).Secure()
 	server.Get("/Emails/:key/:error", admin.GetNotifiers).Secure()
+	server.Get("/History/:key", admin.GetHistory).Secure()
+	server.Get("/History/:key/:page/:perpage", admin.GetHistory).Secure()
 
 	//Setting Routes
 	server.Get("/Settings", admin.Settings).Secure()

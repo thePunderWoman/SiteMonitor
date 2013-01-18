@@ -15,13 +15,26 @@ import (
 )
 
 type Website struct {
-	ID         int64
-	Name       string
-	URL        string
-	Interval   int
-	Monitoring bool
-	Status     history.History
-	Public     bool
+	ID            int64
+	Name          string
+	URL           string
+	Interval      int
+	Monitoring    bool
+	Status        history.History
+	Public        bool
+	EmailInterval int
+	LogDays       int
+}
+
+type WebsiteSave struct {
+	ID            int64
+	Name          string
+	URL           string
+	Interval      int
+	Monitoring    bool
+	Public        bool
+	EmailInterval int
+	LogDays       int
 }
 
 func GetAll(r *http.Request) (sites []Website, err error) {
@@ -62,7 +75,8 @@ func CheckSites(r *http.Request) (err error) {
 	keys, err := q.GetAll(c, &sites)
 	if err == nil {
 		for i := 0; i < len(keys); i++ {
-			site, _ := Get(r, keys[i].IntID())
+			site, _, _ := Get(r, keys[i].IntID())
+			history.ClearOld(r, site.ID, site.LogDays)
 			dur := time.Duration(site.Interval) * time.Minute
 
 			if now.Sub(site.Status.Checked) >= dur {
@@ -73,16 +87,23 @@ func CheckSites(r *http.Request) (err error) {
 	return err
 }
 
-func Get(r *http.Request, key int64) (site *Website, err error) {
+func Get(r *http.Request, key int64) (site Website, sitesave WebsiteSave, err error) {
 
 	c := appengine.NewContext(r)
 	k := datastore.NewKey(c, "website", "", key, nil)
-	w := new(Website)
-	err = datastore.Get(c, k, w)
+	err = datastore.Get(c, k, &sitesave)
 	if err == nil {
-		w.Status, err = history.GetStatus(r, w.ID)
+		site.ID = sitesave.ID
+		site.Name = sitesave.Name
+		site.URL = sitesave.URL
+		site.Interval = sitesave.Interval
+		site.Monitoring = sitesave.Monitoring
+		site.Public = sitesave.Public
+		site.EmailInterval = sitesave.EmailInterval
+		site.LogDays = sitesave.LogDays
+		site.Status, err = history.GetStatus(r, sitesave.ID)
 	}
-	return w, err
+	return site, sitesave, err
 }
 
 func Delete(r *http.Request) (err error) {
@@ -99,6 +120,14 @@ func Save(r *http.Request) (err error) {
 	name := r.FormValue("name")
 	urlstr := r.FormValue("url")
 	interval, err := strconv.Atoi(r.FormValue("interval"))
+	emailInterval, err := strconv.Atoi(r.FormValue("emailinterval"))
+	if err != nil || emailInterval < interval {
+		emailInterval = interval
+	}
+	logdays, err := strconv.Atoi(r.FormValue("logdays"))
+	if err != nil || logdays < 1 {
+		logdays = 1
+	}
 	var monitoring bool
 	var public bool
 	if r.FormValue("monitoring") == "" {
@@ -112,8 +141,8 @@ func Save(r *http.Request) (err error) {
 		public = true
 	}
 
-	if strings.TrimSpace(name) == "" || strings.TrimSpace(urlstr) == "" || err != nil || interval < 5 {
-		err = errors.New("Name and URL are required. Interval must be an integer greater than 5.")
+	if strings.TrimSpace(name) == "" || strings.TrimSpace(urlstr) == "" || err != nil || interval < 5 || logdays < 1 {
+		err = errors.New("Name and URL are required. Interval must be an integer greater than 5. Log Days kept must be greater than 1.")
 		return
 	}
 
@@ -122,12 +151,14 @@ func Save(r *http.Request) (err error) {
 
 	if err != nil {
 		// new Website
-		site := Website{
-			Name:       name,
-			URL:        urlstr,
-			Interval:   interval,
-			Monitoring: monitoring,
-			Public:     public,
+		site := WebsiteSave{
+			Name:          name,
+			URL:           urlstr,
+			Interval:      interval,
+			Monitoring:    monitoring,
+			Public:        public,
+			EmailInterval: emailInterval,
+			LogDays:       logdays,
 		}
 
 		key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "website", nil), &site)
@@ -141,7 +172,7 @@ func Save(r *http.Request) (err error) {
 	} else {
 		// update website
 		k := datastore.NewKey(c, "website", "", keynum, nil)
-		site, err := Get(r, keynum)
+		_, site, err := Get(r, keynum)
 		if err != nil {
 			return err
 		}
@@ -150,8 +181,10 @@ func Save(r *http.Request) (err error) {
 		site.Interval = interval
 		site.Monitoring = monitoring
 		site.Public = public
+		site.LogDays = logdays
+		site.EmailInterval = emailInterval
 
-		_, err = datastore.Put(c, k, site)
+		_, err = datastore.Put(c, k, &site)
 		return err
 	}
 	return
@@ -163,7 +196,7 @@ func (website Website) GetNotifiers(r *http.Request) (notifiers []notify.Notify,
 	return
 }
 
-func (website Website) Check(r *http.Request) {
+func (website *Website) Check(r *http.Request) {
 	status := rest.Get(website.URL, r)
 	prevStatus := website.Status.Status
 	var err error
@@ -192,5 +225,10 @@ func (website Website) EmailNotifiers(r *http.Request) (err error) {
 			notifiers[i].Notify(r, website.Name, website.URL, website.Status.Checked, website.Status.Status)
 		}
 	}
+	return
+}
+
+func (website Website) GetHistory(r *http.Request, page int, perpage int) (logs []history.History, err error) {
+	logs, err = history.GetHistory(r, website.ID, page, perpage)
 	return
 }

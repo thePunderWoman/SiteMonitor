@@ -65,6 +65,24 @@
 			</div>
 		</div>
 		<div class="control-group">
+			<label for="emailinterval" class="control-label">Downtime Email Interval (minutes)</label>
+			<div class="controls">
+				<input id="emailinterval" name="emailinterval" placeholder="Enter an interval in mins" type="number" {{if .Website.EmailInterval}} value="{{.Website.EmailInterval}}" {{end}} />
+			</div>
+		</div>
+		<div class="control-group">
+			<label for="logdays" class="control-label">Days of Logs kept</label>
+			<div class="controls">
+				<select name="logdays" id="logdays">
+					<option value="30" {{if daysComparison .Website.LogDays 30}}selected{{end}}>30 Days</option>
+					<option value="60" {{if daysComparison .Website.LogDays 60}}selected{{end}}>60 Days</option>
+					<option value="90" {{if daysComparison .Website.LogDays 90}}selected{{end}}>90 Days</option>
+					<option value="180" {{if daysComparison .Website.LogDays 180}}selected{{end}}>180 Days</option>
+					<option value="365" {{if daysComparison .Website.LogDays 365}}selected{{end}}>365 Days</option>
+				</select>
+			</div>
+		</div>
+		<div class="control-group">
 			<div class="controls">
 				<label for="monitoring" class="checkbox">
 					<input id="monitoring" name="monitoring" value="1" type="checkbox" {{if .Website.Monitoring}} checked="checked" {{end}} /> Monitoring

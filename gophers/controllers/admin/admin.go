@@ -7,7 +7,7 @@ import (
 	"gophers/helpers/website"
 	"gophers/plate"
 	"html/template"
-	//"log"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -81,9 +81,17 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		plate.Serve404(w, err.Error())
 		return
 	}
+
+	tmpl.FuncMap = template.FuncMap{
+		"daysComparison": func(daysa int, daysb int) bool {
+			x := daysa == daysb
+			return x
+		},
+	}
+
 	var keynum int64
 	keynum, _ = strconv.ParseInt(params.Get(":key"), 10, 64)
-	site, err := website.Get(r, keynum)
+	site, _, err := website.Get(r, keynum)
 
 	if err != nil {
 		plate.Serve404(w, err.Error())
@@ -138,7 +146,7 @@ func GetNotifiers(w http.ResponseWriter, r *http.Request) {
 
 	var keynum int64
 	keynum, _ = strconv.ParseInt(params.Get(":key"), 10, 64)
-	site, err := website.Get(r, keynum)
+	site, _, err := website.Get(r, keynum)
 
 	if err != nil {
 		plate.Serve404(w, err.Error())
@@ -220,6 +228,60 @@ func SaveSettings(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Redirect(w, r, "/settings", http.StatusFound)
 	}
+}
+
+func GetHistory(w http.ResponseWriter, r *http.Request) {
+	server := plate.NewServer()
+
+	var err error
+	var tmpl plate.Template
+
+	tmpl, err = server.Template(w)
+
+	if err != nil {
+		plate.Serve404(w, err.Error())
+		return
+	}
+
+	tmpl.FuncMap = template.FuncMap{
+		"formatDate": func(dt time.Time) string {
+			layout := "Mon, 01/02/06, 3:04PM MST"
+			Local, _ := time.LoadLocation("US/Central")
+			return dt.In(Local).Format(layout)
+		},
+	}
+
+	params := r.URL.Query()
+	page, err := strconv.Atoi(params.Get(":page"))
+	if err != nil {
+		page = 1
+	}
+
+	perpage, err := strconv.Atoi(params.Get(":perpage"))
+	if err != nil {
+		perpage = 100
+	}
+
+	var keynum int64
+	keynum, _ = strconv.ParseInt(params.Get(":key"), 10, 64)
+	site, _, err := website.Get(r, keynum)
+	if err != nil {
+		log.Println(err)
+		plate.Serve404(w, err.Error())
+		return
+	}
+
+	logs, err := site.GetHistory(r, page, perpage)
+	if err != nil {
+		plate.Serve404(w, err.Error())
+		return
+	}
+
+	tmpl.Bag["Site"] = site
+	tmpl.Bag["Logs"] = logs
+	tmpl.Template = "templates/admin/history.html"
+
+	tmpl.DisplayTemplate()
 }
 
 func ErrorPage(w http.ResponseWriter, r *http.Request) {

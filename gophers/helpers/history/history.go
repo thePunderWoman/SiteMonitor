@@ -4,7 +4,7 @@ import (
 	"appengine"
 	"appengine/datastore"
 	//"errors"
-	//"log"
+	"log"
 	"net/http"
 	"time"
 )
@@ -65,4 +65,16 @@ func Log(r *http.Request, siteID int64, checked time.Time, status string) (logen
 	}
 
 	return logentry, err
+}
+
+func ClearOld(r *http.Request, siteID int64, days int) {
+	c := appengine.NewContext(r)
+	//parentKey := datastore.NewKey(c, "website", "", siteID, nil)
+	deleteBefore := time.Now().AddDate(0, 0, -days)
+	q := datastore.NewQuery("history").Filter("SiteID =", siteID).Filter("Checked <", deleteBefore).KeysOnly()
+	keys, err := q.GetAll(c, nil)
+	err = datastore.DeleteMulti(c, keys)
+	if err != nil {
+		log.Println(err)
+	}
 }

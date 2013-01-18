@@ -1,0 +1,57 @@
+{{define "content"}}
+	<h3>History for {{.Site.Name}}</h3>
+	<div class="navbar">
+		<div class="navbar-inner">
+			<ul class="nav">
+				<li><a href="/">Home</a></li>
+				<li class="dropdown">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+						Websites
+						<span class="caret"></span>
+					</a>
+					<ul class="dropdown-menu">
+						<li>
+							<a href="/add">
+								Add
+							</a>
+						</li>
+						<li>
+							<a href="/admin">
+								View All
+							</a>
+						</li>
+					</ul>
+				</li>
+			</ul>
+			<ul class="nav pull-right">
+				<li><a href="/settings">Settings</a></li>
+				<li class="divider-vertical"></li>
+				<li><a href="/auth/out">Logout</a></li>
+			</ul>
+		</div>
+	</div>
+	{{with .Logs}}
+		<table class="table table-bordered table-condensed table-striped table-hover sortable">
+			<thead>
+				<tr>
+					<th>Checked</th>
+					<th>Status</th>
+				</tr>
+			</thead>
+			<tbody>
+				{{range .}}
+					<tr>
+						<td>{{formatDate .Checked}}</td>
+						<td class="center"><span class="status {{.Status}}" title="{{.Status}}"></span></td>
+					</tr>
+				{{end}}
+			</tbody>
+		</table>
+	{{else}}
+		<div class="alert alert-info">
+			<button class="close" type="button" data-dismiss="alert">x</button>
+			<h4>Heads up!</h4>
+			We currently don't have any history to display
+		</div>
+	{{end}}
+ {{end}}
