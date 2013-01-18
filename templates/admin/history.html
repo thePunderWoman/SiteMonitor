@@ -56,4 +56,19 @@
 			We currently don't have any history to display
 		</div>
 	{{end}}
+	{{if showPagination .Pages}}
+		<ul class="pager">
+			{{if showPrev .Page}}
+		  		<li class="previous">
+		    		<a href="/history/{{.Site.ID}}/{{prevPage .Page}}/{{.PerPage}}">&larr; Older</a>
+		  		</li>
+		  	{{end}}
+		  	{{if showNext .Page .Pages}}
+				<li class="next">
+					<a href="/history/{{.Site.ID}}/{{nextPage .Page}}/{{.PerPage}}">Newer &rarr;</a>
+				</li>
+		  	{{end}}
+		</ul>
+	{{end}}
+	<p class="totals">Log Entries {{.Start}} through {{.End}} of {{.Total}} <span>Page {{.Page}} of {{.Pages}}</span></p>
  {{end}}

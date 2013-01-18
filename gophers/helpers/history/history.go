@@ -17,11 +17,12 @@ type History struct {
 	Emailed bool
 }
 
-func GetHistory(r *http.Request, siteID int64, page int, perpage int) (logentries []History, err error) {
+func GetHistory(r *http.Request, siteID int64, page int, perpage int) (logentries []History, entries int, err error) {
 	c := appengine.NewContext(r)
 	offset := (page - 1) * perpage
 	q := datastore.NewQuery("history").Filter("SiteID =", siteID).Order("-Checked").Limit(perpage).Offset(offset)
-
+	q2 := datastore.NewQuery("history").Filter("SiteID =", siteID)
+	entries, _ = q2.Count(c)
 	for t := q.Run(c); ; {
 		var x History
 		_, err := t.Next(&x)
@@ -31,7 +32,7 @@ func GetHistory(r *http.Request, siteID int64, page int, perpage int) (logentrie
 		logentries = append(logentries, x)
 	}
 
-	return logentries, err
+	return logentries, entries, err
 }
 
 func GetStatus(r *http.Request, siteID int64) (status History, err error) {

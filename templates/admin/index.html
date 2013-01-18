@@ -35,10 +35,9 @@
 			<thead>
 				<tr>
 					<th>Name</th>
-					<th>URL</th>
 					<th>Interval</th>
 					<th>Email Frequency</th>
-					<th>Days of Log Entries kept</th>
+					<th>Log History</th>
 					<th class="date">Last Checked</th>
 					<th>Monitoring</th>
 					<th>Public</th>
@@ -50,8 +49,7 @@
 			<tbody>
 				{{range .}}
 					<tr>
-						<td>{{.Name}}</td>
-						<td>{{.URL}}</td>
+						<td><a href="{{.URL}}" target="_blank">{{.Name}}</a></td>
 						<td>{{.Interval}} Mins</td>
 						<td>{{.IntervalMins}} Mins</td>
 						<td>{{.LogDays}} Days</td>

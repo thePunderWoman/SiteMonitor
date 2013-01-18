@@ -76,6 +76,7 @@ func CheckSites(r *http.Request) (err error) {
 	c := appengine.NewContext(r)
 	now := time.Now()
 	q := datastore.NewQuery("website").Filter("Monitoring =", true).KeysOnly()
+	siteChan := make(chan int)
 
 	//Just get keys
 	sites := make([]Website, 0)
@@ -87,10 +88,14 @@ func CheckSites(r *http.Request) (err error) {
 			dur := time.Duration(site.Interval) * time.Minute
 
 			if now.Sub(site.Status.Checked) >= dur {
-				site.Check(r)
+				go func() {
+					site.Check(r)
+					siteChan <- 1
+				}()
 			}
 		}
 	}
+	<-siteChan
 	return err
 }
 
@@ -241,8 +246,8 @@ func (website Website) EmailNotifiers(r *http.Request) (err error) {
 	return
 }
 
-func (website Website) GetHistory(r *http.Request, page int, perpage int) (logs []history.History, err error) {
-	logs, err = history.GetHistory(r, website.ID, page, perpage)
+func (website Website) GetHistory(r *http.Request, page int, perpage int) (logs []history.History, pages int, err error) {
+	logs, pages, err = history.GetHistory(r, website.ID, page, perpage)
 	return
 }
 

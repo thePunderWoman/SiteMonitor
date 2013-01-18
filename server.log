@@ -1,1 +1,1 @@
-2013/01/18 20:25:41 127.0.0.1 - - [2013-01-18 20:25:41.465069 +0000 UTC] "GET / HTTP/1.0" 0 2536 "http://localhost:8080/history/29/1/100" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17"
+2013/01/18 23:47:30 127.0.0.1 - - [2013-01-18 23:47:30.522083 +0000 UTC] "GET /history/48/1/2 HTTP/1.0" 0 3455 "http://localhost:8080/history/48/2/2" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_2) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.52 Safari/537.17"
