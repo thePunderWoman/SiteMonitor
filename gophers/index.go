@@ -30,7 +30,7 @@ func init() {
 	server.Post("/Delete", admin.Delete).Secure()
 	server.Post("/DeleteNotifier", admin.DeleteNotifier).Secure()
 	server.Post("/AddNotifier", admin.AddNotifier).Secure()
-	//server.Get("/TestSend/:parent/:key", admin.TestSend).Secure()
+	server.Get("/TestSend/:parent/:key", admin.TestSend).Secure()
 	server.Get("/Emails/:key", admin.GetNotifiers).Secure()
 	server.Get("/Emails/:key/:error", admin.GetNotifiers).Secure()
 	server.Get("/History/:key", admin.GetHistory).Secure()

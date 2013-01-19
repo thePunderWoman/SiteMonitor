@@ -76,7 +76,6 @@ func CheckSites(r *http.Request) (err error) {
 	c := appengine.NewContext(r)
 	now := time.Now()
 	q := datastore.NewQuery("website").Filter("Monitoring =", true).KeysOnly()
-	siteChan := make(chan int)
 
 	//Just get keys
 	sites := make([]Website, 0)
@@ -88,14 +87,10 @@ func CheckSites(r *http.Request) (err error) {
 			dur := time.Duration(site.Interval) * time.Minute
 
 			if now.Sub(site.Status.Checked) >= dur {
-				go func() {
-					site.Check(r)
-					siteChan <- 1
-				}()
+				site.Check(r)
 			}
 		}
 	}
-	<-siteChan
 	return err
 }
 
