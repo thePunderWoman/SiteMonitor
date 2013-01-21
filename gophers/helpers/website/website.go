@@ -148,7 +148,6 @@ func CheckSites(r *http.Request) (err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	sites = history.GetStatuses(r, sites)
 	if err == nil {
 		for i := 0; i < len(sites); i++ {
 			dur := time.Duration(sites[i].Interval) * time.Minute
