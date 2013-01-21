@@ -43,6 +43,7 @@ func init() {
 
 	//Cron Task
 	server.Get("/Check", admin.Check)
+	server.Get("/CleanLogs", admin.CleanLogs)
 
 	session_key := "your key here"
 	http.Handle("/", server.NewSessionHandler(session_key, nil))

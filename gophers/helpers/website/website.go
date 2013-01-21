@@ -3,6 +3,8 @@ package website
 import (
 	"appengine"
 	"appengine/datastore"
+	"appengine/memcache"
+	"encoding/json"
 	"errors"
 	"gophers/helpers/history"
 	"gophers/helpers/notify"
@@ -72,25 +74,93 @@ func GetPublic(r *http.Request) (sites []Website, err error) {
 	return sites, err
 }
 
-func CheckSites(r *http.Request) (err error) {
+func GetCachedSites(r *http.Request) (sites []Website, err error) {
 	c := appengine.NewContext(r)
-	now := time.Now()
-	q := datastore.NewQuery("website").Filter("Monitoring =", true).KeysOnly()
+	//sites, err := GetAll(r)
+	var item *memcache.Item
+	// Get the item from the memcache
+	if item, err = memcache.Get(c, "sites"); err == memcache.ErrCacheMiss {
+		q := datastore.NewQuery("website").Order("Name")
+		_, err = q.GetAll(c, &sites)
+		if err == nil {
+			sitesdata, _ := json.Marshal(sites)
+			item := &memcache.Item{
+				Key:   "sites",
+				Value: sitesdata,
+			}
+			err = memcache.Add(c, item)
+		}
+	} else {
+		err = json.Unmarshal(item.Value, &sites)
+	}
+	return sites, err
+}
 
-	//Just get keys
+func UpdateCachedSites(r *http.Request) {
+	c := appengine.NewContext(r)
+	var item *memcache.Item
+
+	// retreive websites
+	q := datastore.NewQuery("website").Order("Name")
 	sites := make([]Website, 0)
-	keys, err := q.GetAll(c, &sites)
-	if err == nil {
-		for i := 0; i < len(keys); i++ {
-			site, _, _ := Get(r, keys[i].IntID())
-			history.ClearOld(r, site.ID, site.LogDays)
-			dur := time.Duration(site.Interval) * time.Minute
+	_, err := q.GetAll(c, &sites)
 
-			if now.Sub(site.Status.Checked) >= dur {
-				site.Check(r)
+	if err != nil {
+		log.Fatal("Error retreiving sites from datastore")
+	}
+	sitesdata, err := json.Marshal(sites)
+
+	// Get the item from the memcache
+	if item, err = memcache.Get(c, "sites"); err == memcache.ErrCacheMiss {
+		// item doesn't exist at all...add it
+		item := &memcache.Item{
+			Key:   "sites",
+			Value: sitesdata,
+		}
+		err = memcache.Add(c, item)
+		log.Println(err)
+	} else {
+		// item does exist, update
+		item.Value = sitesdata
+		_ = memcache.Set(c, item)
+	}
+}
+
+func CleanLogs(r *http.Request) {
+	// this task runs only once a day
+	c := appengine.NewContext(r)
+	q := datastore.NewQuery("website").Filter("Monitoring =", true)
+
+	sites := make([]Website, 0)
+	_, err := q.GetAll(c, &sites)
+	if err == nil {
+		for i := 0; i < len(sites); i++ {
+			history.ClearOld(r, sites[i].ID, sites[i].LogDays)
+		}
+	}
+
+}
+
+func CheckSites(r *http.Request) (err error) {
+	sites, err := GetCachedSites(r)
+	now := time.Now()
+	logs := make(map[int64]history.History)
+	if err != nil {
+		log.Fatal(err)
+	}
+	sites = history.GetStatuses(r, sites)
+	if err == nil {
+		for i := 0; i < len(sites); i++ {
+			dur := time.Duration(sites[i].Interval) * time.Minute
+
+			status, _ := history.GetStatus(r, sites[i].ID)
+
+			if now.Sub(status.Checked) >= dur {
+				logs[sites[i].ID] = sites[i].Check(r)
 			}
 		}
 	}
+	history.SaveLogs(r, logs)
 	return err
 }
 
@@ -166,30 +236,41 @@ func Save(r *http.Request) (err error) {
 			LogDays:       logdays,
 		}
 
-		key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "website", nil), &site)
+		err := datastore.RunInTransaction(c, func(c appengine.Context) error {
+			// Note: this function's argument c shadows the variable c
+			//       from the surrounding function.
 
-		if err == nil {
-			site.ID = key.IntID()
-			key, err = datastore.Put(c, key, &site)
-		}
+			key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "website", nil), &site)
 
+			if err == nil {
+				site.ID = key.IntID()
+				key, err = datastore.Put(c, key, &site)
+			}
+
+			return err
+		}, nil)
+		UpdateCachedSites(r)
 		return err
 	} else {
 		// update website
-		k := datastore.NewKey(c, "website", "", keynum, nil)
-		_, site, err := Get(r, keynum)
-		if err != nil {
-			return err
-		}
-		site.Name = name
-		site.URL = urlstr
-		site.Interval = interval
-		site.Monitoring = monitoring
-		site.Public = public
-		site.LogDays = logdays
-		site.EmailInterval = emailInterval
+		err := datastore.RunInTransaction(c, func(c appengine.Context) error {
+			k := datastore.NewKey(c, "website", "", keynum, nil)
+			_, site, err := Get(r, keynum)
+			if err != nil {
+				return err
+			}
+			site.Name = name
+			site.URL = urlstr
+			site.Interval = interval
+			site.Monitoring = monitoring
+			site.Public = public
+			site.LogDays = logdays
+			site.EmailInterval = emailInterval
 
-		_, err = datastore.Put(c, k, &site)
+			_, err = datastore.Put(c, k, &site)
+			return err
+		}, nil)
+		UpdateCachedSites(r)
 		return err
 	}
 	return
@@ -205,13 +286,13 @@ func (website Website) GetNotifiers(r *http.Request) (notifiers []notify.Notify,
 	return
 }
 
-func (website *Website) Check(r *http.Request) {
+func (website *Website) Check(r *http.Request) history.History {
 	status := rest.Get(website.URL, r)
 	prevStatus := website.Status.Status
 	var err error
 	if status {
 		send := prevStatus == "down"
-		website.Status, err = history.Log(r, website.ID, time.Now(), "up", send)
+		website.Status = history.Log(r, website.ID, time.Now(), "up", send)
 		if send {
 			err := website.EmailNotifiers(r)
 			if err != nil {
@@ -220,7 +301,7 @@ func (website *Website) Check(r *http.Request) {
 		}
 	} else {
 		send := (prevStatus == "up") || (website.OkToSend(r))
-		website.Status, err = history.Log(r, website.ID, time.Now(), "down", send)
+		website.Status = history.Log(r, website.ID, time.Now(), "down", send)
 		if send {
 			err = website.EmailNotifiers(r)
 			if err != nil {
@@ -228,7 +309,7 @@ func (website *Website) Check(r *http.Request) {
 			}
 		}
 	}
-
+	return website.Status
 }
 
 func (website Website) EmailNotifiers(r *http.Request) (err error) {

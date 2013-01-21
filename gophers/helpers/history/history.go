@@ -69,27 +69,31 @@ func Uptime(r *http.Request, siteID int64) (uptime float32) {
 	return uptime
 }
 
-func Log(r *http.Request, siteID int64, checked time.Time, status string, emailed bool) (logentry History, err error) {
-	c := appengine.NewContext(r)
-
-	parentKey := datastore.NewKey(c, "website", "", siteID, nil)
-
-	// new Notify
+func Log(r *http.Request, siteID int64, checked time.Time, status string, emailed bool) (logentry History) {
 	logentry = History{
 		SiteID:  siteID,
 		Checked: checked,
 		Status:  status,
 		Emailed: emailed,
 	}
+	return
+}
 
-	key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "history", parentKey), &logentry)
-
-	if err == nil {
-		logentry.ID = key.IntID()
-		key, err = datastore.Put(c, key, &logentry)
+func SaveLogs(r *http.Request, logs map[int64]History) {
+	c := appengine.NewContext(r)
+	toPut := make([]History, 0)
+	keys := make([]*datastore.Key, 0)
+	for siteID, logentry := range logs {
+		log.Println("looped")
+		parentKey := datastore.NewKey(c, "website", "", siteID, nil)
+		newKey := datastore.NewIncompleteKey(c, "history", parentKey)
+		keys = append(keys, newKey)
+		toPut = append(toPut, logentry)
 	}
-
-	return logentry, err
+	_, err := datastore.PutMulti(c, keys, toPut)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func ClearOld(r *http.Request, siteID int64, days int) {

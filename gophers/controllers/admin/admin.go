@@ -433,3 +433,8 @@ func Check(w http.ResponseWriter, r *http.Request) {
 	website.CheckSites(r)
 	fmt.Fprint(w, "Checking sites")
 }
+
+func CleanLogs(w http.ResponseWriter, r *http.Request) {
+	website.CleanLogs(r)
+	fmt.Fprint(w, "Cleaning Logs")
+}
