@@ -8,7 +8,7 @@ import (
 	"gophers/helpers/website"
 	"gophers/plate"
 	"html/template"
-	"log"
+	//"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -49,6 +49,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		sites, err = website.GetAll(r)
+		sites = website.PopulateUptime(r, sites)
 		siteChan <- 1
 	}()
 
@@ -307,7 +308,6 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 	<-tmplChan
 
 	if err != nil {
-		log.Println(err)
 		plate.Serve404(w, err.Error())
 		return
 	}
@@ -385,7 +385,7 @@ func GetHistory(w http.ResponseWriter, r *http.Request) {
 
 	perpage, err := strconv.Atoi(params.Get(":perpage"))
 	if err != nil {
-		perpage = 100
+		perpage = 50
 	}
 
 	go func() {

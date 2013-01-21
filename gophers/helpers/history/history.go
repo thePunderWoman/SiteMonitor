@@ -5,6 +5,7 @@ import (
 	"appengine/datastore"
 	//"errors"
 	"log"
+	"math"
 	"net/http"
 	"time"
 )
@@ -66,6 +67,9 @@ func Uptime(r *http.Request, siteID int64) (uptime float32) {
 	total, _ := q.Count(c)
 	uptotal, _ := qUp.Count(c)
 	uptime = (float32(uptotal) / float32(total)) * 100.0
+	if math.IsNaN(float64(uptime)) {
+		uptime = 0
+	}
 	return uptime
 }
 
@@ -84,7 +88,6 @@ func SaveLogs(r *http.Request, logs map[int64]History) {
 	toPut := make([]History, 0)
 	keys := make([]*datastore.Key, 0)
 	for siteID, logentry := range logs {
-		log.Println("looped")
 		parentKey := datastore.NewKey(c, "website", "", siteID, nil)
 		newKey := datastore.NewIncompleteKey(c, "history", parentKey)
 		keys = append(keys, newKey)

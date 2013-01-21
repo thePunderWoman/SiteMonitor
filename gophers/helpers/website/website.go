@@ -46,42 +46,16 @@ func (website Website) IntervalMins() int {
 
 func GetAll(r *http.Request) (sites []Website, err error) {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery("website").Order("Name")
-
-	//var sites []QueryResult
-	sites = make([]Website, 0)
-	_, err = q.GetAll(c, &sites)
-	for i := 0; i < len(sites); i++ {
-		sites[i].Status, err = history.GetStatus(r, sites[i].ID)
-		sites[i].GetUptime(r)
-	}
-
-	return sites, err
-}
-
-func GetPublic(r *http.Request) (sites []Website, err error) {
-	c := appengine.NewContext(r)
-	q := datastore.NewQuery("website").Filter("Public =", true).Order("Name")
-
-	//var sites []QueryResult
-	sites = make([]Website, 0)
-	_, err = q.GetAll(c, &sites)
-	for i := 0; i < len(sites); i++ {
-		sites[i].Status, err = history.GetStatus(r, sites[i].ID)
-		sites[i].GetUptime(r)
-	}
-
-	return sites, err
-}
-
-func GetCachedSites(r *http.Request) (sites []Website, err error) {
-	c := appengine.NewContext(r)
 	//sites, err := GetAll(r)
 	var item *memcache.Item
 	// Get the item from the memcache
 	if item, err = memcache.Get(c, "sites"); err == memcache.ErrCacheMiss {
 		q := datastore.NewQuery("website").Order("Name")
 		_, err = q.GetAll(c, &sites)
+		for i := 0; i < len(sites); i++ {
+			sites[i].Status, err = history.GetStatus(r, sites[i].ID)
+			sites[i].GetUptime(r)
+		}
 		if err == nil {
 			sitesdata, _ := json.Marshal(sites)
 			item := &memcache.Item{
@@ -96,6 +70,13 @@ func GetCachedSites(r *http.Request) (sites []Website, err error) {
 	return sites, err
 }
 
+func PopulateUptime(r *http.Request, sites []Website) []Website {
+	for i := 0; i < len(sites); i++ {
+		sites[i].GetUptime(r)
+	}
+	return sites
+}
+
 func UpdateCachedSites(r *http.Request) {
 	c := appengine.NewContext(r)
 	var item *memcache.Item
@@ -104,6 +85,10 @@ func UpdateCachedSites(r *http.Request) {
 	q := datastore.NewQuery("website").Order("Name")
 	sites := make([]Website, 0)
 	_, err := q.GetAll(c, &sites)
+	for i := 0; i < len(sites); i++ {
+		sites[i].Status, err = history.GetStatus(r, sites[i].ID)
+		sites[i].GetUptime(r)
+	}
 
 	if err != nil {
 		log.Fatal("Error retreiving sites from datastore")
@@ -118,12 +103,30 @@ func UpdateCachedSites(r *http.Request) {
 			Value: sitesdata,
 		}
 		err = memcache.Add(c, item)
-		log.Println(err)
 	} else {
 		// item does exist, update
 		item.Value = sitesdata
 		_ = memcache.Set(c, item)
 	}
+}
+
+func CacheStatusChange(r *http.Request, logs map[int64]history.History) {
+	c := appengine.NewContext(r)
+	var item *memcache.Item
+
+	sites, err := GetAll(r)
+	for i := 0; i < len(sites); i++ {
+		if logentry, ok := logs[sites[i].ID]; ok {
+			sites[i].Status = logentry
+		}
+	}
+	item, err = memcache.Get(c, "sites")
+	if err != nil {
+		log.Fatal(err)
+	}
+	sitesdata, _ := json.Marshal(sites)
+	item.Value = sitesdata
+	_ = memcache.Set(c, item)
 }
 
 func CleanLogs(r *http.Request) {
@@ -138,11 +141,10 @@ func CleanLogs(r *http.Request) {
 			history.ClearOld(r, sites[i].ID, sites[i].LogDays)
 		}
 	}
-
 }
 
 func CheckSites(r *http.Request) (err error) {
-	sites, err := GetCachedSites(r)
+	sites, err := GetAll(r)
 	now := time.Now()
 	logs := make(map[int64]history.History)
 	if err != nil {
@@ -152,7 +154,12 @@ func CheckSites(r *http.Request) (err error) {
 		for i := 0; i < len(sites); i++ {
 			dur := time.Duration(sites[i].Interval) * time.Minute
 
-			status, _ := history.GetStatus(r, sites[i].ID)
+			var status history.History
+			if sites[i].Status.Checked.IsZero() {
+				status, _ = history.GetStatus(r, sites[i].ID)
+			} else {
+				status = sites[i].Status
+			}
 
 			if now.Sub(status.Checked) >= dur {
 				logs[sites[i].ID] = sites[i].Check(r)
@@ -160,6 +167,8 @@ func CheckSites(r *http.Request) (err error) {
 		}
 	}
 	history.SaveLogs(r, logs)
+	CacheStatusChange(r, logs)
+
 	return err
 }
 
@@ -189,6 +198,7 @@ func Delete(r *http.Request) (err error) {
 	keynum, _ = strconv.ParseInt(r.FormValue("key"), 10, 64)
 	k := datastore.NewKey(c, "website", "", keynum, nil)
 	err = datastore.Delete(c, k)
+	UpdateCachedSites(r)
 	return
 }
 
