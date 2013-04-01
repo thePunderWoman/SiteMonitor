@@ -16,6 +16,7 @@ type History struct {
 	Checked time.Time
 	Status  string
 	Emailed bool
+	Percent float32
 }
 
 func GetHistory(r *http.Request, siteID int64, page int, perpage int) (logentries []History, entries int, err error) {
@@ -60,13 +61,22 @@ func GetLastEmail(r *http.Request, siteID int64) (logentry History, err error) {
 	return
 }
 
-func Uptime(r *http.Request, siteID int64) (uptime float32) {
+func Uptime(r *http.Request, siteID int64, status string) (uptime float32) {
 	c := appengine.NewContext(r)
 	q := datastore.NewQuery("history").Filter("SiteID =", siteID)
 	qUp := datastore.NewQuery("history").Filter("SiteID =", siteID).Filter("Status =", "up")
 	total, _ := q.Count(c)
 	uptotal, _ := qUp.Count(c)
+
+	// Take into account current log entry
+	total += 1
+	if status == "up" {
+		uptotal += 1
+	}
+	
+	// Run uptime calculation
 	uptime = (float32(uptotal) / float32(total)) * 100.0
+	// Check for errors
 	if math.IsNaN(float64(uptime)) {
 		uptime = 0
 	}
@@ -79,6 +89,7 @@ func Log(r *http.Request, siteID int64, checked time.Time, status string, emaile
 		Checked: checked,
 		Status:  status,
 		Emailed: emailed,
+		Percent: Uptime(r, siteID, status),
 	}
 	return
 }

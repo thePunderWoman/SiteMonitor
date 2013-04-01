@@ -49,7 +49,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		sites, err = website.GetAll(r)
-		sites = website.PopulateUptime(r, sites)
 		siteChan <- 1
 	}()
 

@@ -19,7 +19,7 @@
 							<td><a href="{{getDomain .URL}}" target="_blank">{{.Name}}</a></td>
 							<td>{{getDomain .URL}}</td>
 							<td>{{if not .Status.Checked.IsZero}}{{formatDate .Status.Checked}}{{else}}Never{{end}}</td>
-							<td>{{formatDecimal .Uptime}} ({{.LogDays}} days)</td>
+							<td>{{formatDecimal .Status.Percent}} ({{.LogDays}} days)</td>
 						</tr>
 					{{end}}
 				{{end}}

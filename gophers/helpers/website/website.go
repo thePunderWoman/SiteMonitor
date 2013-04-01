@@ -11,6 +11,7 @@ import (
 	"gophers/helpers/rest"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -26,7 +27,6 @@ type Website struct {
 	Public        bool
 	EmailInterval int
 	LogDays       int
-	Uptime        float32
 }
 
 type WebsiteSave struct {
@@ -54,7 +54,6 @@ func GetAll(r *http.Request) (sites []Website, err error) {
 		_, err = q.GetAll(c, &sites)
 		for i := 0; i < len(sites); i++ {
 			sites[i].Status, err = history.GetStatus(r, sites[i].ID)
-			sites[i].GetUptime(r)
 		}
 		if err == nil {
 			sitesdata, _ := json.Marshal(sites)
@@ -70,13 +69,6 @@ func GetAll(r *http.Request) (sites []Website, err error) {
 	return sites, err
 }
 
-func PopulateUptime(r *http.Request, sites []Website) []Website {
-	for i := 0; i < len(sites); i++ {
-		sites[i].GetUptime(r)
-	}
-	return sites
-}
-
 func UpdateCachedSites(r *http.Request) {
 	c := appengine.NewContext(r)
 	var item *memcache.Item
@@ -87,7 +79,6 @@ func UpdateCachedSites(r *http.Request) {
 	_, err := q.GetAll(c, &sites)
 	for i := 0; i < len(sites); i++ {
 		sites[i].Status, err = history.GetStatus(r, sites[i].ID)
-		sites[i].GetUptime(r)
 	}
 
 	if err != nil {
@@ -127,6 +118,88 @@ func CacheStatusChange(r *http.Request, logs map[int64]history.History) {
 	sitesdata, _ := json.Marshal(sites)
 	item.Value = sitesdata
 	_ = memcache.Set(c, item)
+}
+
+func CacheSiteChange(r *http.Request, site WebsiteSave) {
+	c := appengine.NewContext(r)
+	var item *memcache.Item
+	exists := false
+
+	cacheSite := Website{
+		ID:            site.ID,
+		Name:          site.Name,
+		URL:           site.URL,
+		Interval:      site.Interval,
+		Monitoring:    site.Monitoring,
+		Public:        site.Public,
+		EmailInterval: site.EmailInterval,
+		LogDays:       site.LogDays,
+	}
+	cacheSite.Status, _ = history.GetStatus(r, cacheSite.ID)
+
+	sites, err := GetAll(r)
+	for i := 0; i < len(sites); i++ {
+		if sites[i].ID == site.ID {
+			sites[i] = cacheSite
+			exists = true
+		}
+	}
+	sitelist := sites
+	if !exists {
+		sitelist = append(sites, cacheSite)
+		sort.Sort(ByName{sitelist})
+	}
+
+	if item, err = memcache.Get(c, "sites"); err == memcache.ErrCacheMiss {
+		sitesdata, _ := json.Marshal(sitelist)
+		item := &memcache.Item{
+			Key:   "sites",
+			Value: sitesdata,
+		}
+		_ = memcache.Add(c, item)
+	} else {
+		sitesdata, _ := json.Marshal(sitelist)
+		item.Value = sitesdata
+		_ = memcache.Set(c, item)
+	}
+}
+
+func RemoveFromCache(r *http.Request, siteID int64) {
+	c := appengine.NewContext(r)
+	var item *memcache.Item
+
+	target := -1
+	sites, err := GetAll(r)
+	for i := 0; i < len(sites); i++ {
+		if sites[i].ID == siteID {
+			target = i
+		}
+	}
+	if target > -1 {
+		sitelist := make([]Website, len(sites)-1)
+		count := 0
+		for i := 0; i < len(sites); i++ {
+			if sites[i].ID != siteID {
+				sitelist[count] = sites[i]
+				count++
+			}
+		}
+		// sort	
+		sort.Sort(ByName{sitelist})
+
+		if item, err = memcache.Get(c, "sites"); err == memcache.ErrCacheMiss {
+			sitesdata, _ := json.Marshal(sitelist)
+			item := &memcache.Item{
+				Key:   "sites",
+				Value: sitesdata,
+			}
+			_ = memcache.Add(c, item)
+		} else {
+			sitesdata, _ := json.Marshal(sitelist)
+			item.Value = sitesdata
+			_ = memcache.Set(c, item)
+		}
+	}
 }
 
 func CleanLogs(r *http.Request) {
@@ -187,7 +260,6 @@ func Get(r *http.Request, key int64) (site Website, sitesave WebsiteSave, err er
 		site.EmailInterval = sitesave.EmailInterval
 		site.LogDays = sitesave.LogDays
 		site.Status, err = history.GetStatus(r, sitesave.ID)
-		site.GetUptime(r)
 	}
 	return site, sitesave, err
 }
@@ -198,7 +270,7 @@ func Delete(r *http.Request) (err error) {
 	keynum, _ = strconv.ParseInt(r.FormValue("key"), 10, 64)
 	k := datastore.NewKey(c, "website", "", keynum, nil)
 	err = datastore.Delete(c, k)
-	UpdateCachedSites(r)
+	RemoveFromCache(r, keynum)
 	return
 }
 
@@ -256,9 +328,9 @@ func Save(r *http.Request) (err error) {
 				key, err = datastore.Put(c, key, &site)
 			}
 
+			CacheSiteChange(r, site)
 			return err
 		}, nil)
-		UpdateCachedSites(r)
 		return err
 	} else {
 		// update website
@@ -268,6 +340,7 @@ func Save(r *http.Request) (err error) {
 			if err != nil {
 				return err
 			}
+			site.ID = keynum
 			site.Name = name
 			site.URL = urlstr
 			site.Interval = interval
@@ -277,17 +350,12 @@ func Save(r *http.Request) (err error) {
 			site.EmailInterval = emailInterval
 
 			_, err = datastore.Put(c, k, &site)
+			CacheSiteChange(r, site)
 			return err
 		}, nil)
-		UpdateCachedSites(r)
 		return err
 	}
 	return
-
-}
-
-func (website *Website) GetUptime(r *http.Request) {
-	website.Uptime = history.Uptime(r, website.ID)
 }
 
 func (website Website) GetNotifiers(r *http.Request) (notifiers []notify.Notify, err error) {
@@ -345,3 +413,10 @@ func (website Website) OkToSend(r *http.Request) bool {
 	dur := (time.Duration(website.Interval*website.EmailInterval) * time.Minute).Minutes()
 	return sinceLast > dur
 }
+
+type ByName struct{ Websites []Website }
+
+func (s ByName) Len() int      { return len(s.Websites) }
+func (s ByName) Swap(i, j int) { s.Websites[i], s.Websites[j] = s.Websites[j], s.Websites[i] }
+
+func (s ByName) Less(i, j int) bool { return s.Websites[i].Name < s.Websites[j].Name }
