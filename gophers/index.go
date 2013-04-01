@@ -36,11 +36,6 @@ func init() {
 	server.Get("/History/:key", admin.GetHistory).Secure()
 	server.Get("/History/:key/:page/:perpage", admin.GetHistory).Secure()
 
-	//Setting Routes
-	server.Get("/Settings", admin.Settings).Secure()
-	server.Get("/Settings/:error", admin.Settings).Secure()
-	server.Post("/Settings", admin.SaveSettings).Secure()
-
 	//Cron Task
 	server.Get("/Check", admin.Check)
 	server.Get("/CleanLogs", admin.CleanLogs)

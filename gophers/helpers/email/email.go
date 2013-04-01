@@ -1,10 +1,12 @@
 package email
 
 import (
-	"errors"
-	"log"
-	"net/smtp"
-	"strconv"
+	"appengine"
+	"appengine/mail"
+	"net/http"
+	//"errors"
+	//"log"
+	//"strconv"
 )
 
 type Settings struct {
@@ -16,7 +18,7 @@ type Settings struct {
 	Port     int
 }
 
-type plainAuth struct {
+/*type plainAuth struct {
 	identity, username, password string
 	host                         string
 }
@@ -71,4 +73,25 @@ func Send(settings Settings, tos []string, subject string, body string, html boo
 	if err != nil {
 		log.Println(err)
 	}
+}*/
+
+func Send(r *http.Request, tos []string, subject string, body string, html bool) {
+	c := appengine.NewContext(r)
+
+	msg := &mail.Message{
+		Sender:  "CURT Site Monitor <status@curtmfg.com>",
+		ReplyTo: "CURT Site Monitor <websupport@curtmfg.com>",
+		To:      tos,
+		Subject: subject,
+	}
+	if html {
+		msg.HTMLBody = body
+	} else {
+		msg.Body = body
+	}
+
+	if err := mail.Send(c, msg); err != nil {
+		c.Errorf("Couldn't send email: %v", err)
+	}
+
 }

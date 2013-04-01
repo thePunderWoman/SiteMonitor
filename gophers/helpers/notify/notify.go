@@ -5,8 +5,7 @@ import (
 	"appengine/datastore"
 	"errors"
 	"gophers/helpers/email"
-	"gophers/helpers/serversettings"
-	"log"
+	//"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -36,11 +35,11 @@ func Get(r *http.Request) (notify Notify, err error) {
 	var keynum int64
 	keynum, _ = strconv.ParseInt(params.Get(":key"), 10, 64)
 	parentkeynum, _ := strconv.ParseInt(params.Get(":parent"), 10, 64)
+
 	parentKey := datastore.NewKey(c, "website", "", parentkeynum, nil)
 	key := datastore.NewKey(c, "notify", "", keynum, parentKey)
 
 	err = datastore.Get(c, key, &notify)
-
 	return notify, err
 }
 
@@ -89,18 +88,6 @@ func Save(r *http.Request) (err error) {
 }
 
 func (notifier *Notify) Notify(r *http.Request, name string, url string, lastChecked time.Time, template string) {
-	serversettings, err := serversettings.Get(r)
-	if err != nil {
-		log.Fatal(err)
-	}
-	settings := email.Settings{
-		Server:   serversettings.Server,
-		Email:    serversettings.Email,
-		SSL:      serversettings.SSL,
-		Username: serversettings.Username,
-		Password: serversettings.Password,
-		Port:     serversettings.Port,
-	}
 	layout := "Mon, 01/02/06, 3:04PM MST"
 	Local, _ := time.LoadLocation("US/Central")
 	localChecked := lastChecked.In(Local).Format(layout)
@@ -118,5 +105,5 @@ func (notifier *Notify) Notify(r *http.Request, name string, url string, lastChe
 		subject = name + " Site Outage Warning!"
 		body = "<html><body><p>Hello " + notifier.Name + "</p><p>The " + name + " website at " + url + " is down as of " + localChecked + ".</p></body></html>"
 	}
-	email.Send(settings, tos, subject, body, true)
+	email.Send(r, tos, subject, body, true)
 }

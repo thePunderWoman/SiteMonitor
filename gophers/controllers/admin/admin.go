@@ -8,7 +8,7 @@ import (
 	"gophers/helpers/website"
 	"gophers/plate"
 	"html/template"
-	//"log"
+	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -241,6 +241,7 @@ func GetNotifiers(w http.ResponseWriter, r *http.Request) {
 func TestSend(w http.ResponseWriter, r *http.Request) {
 	notifier, err := notify.Get(r)
 	if err == nil {
+		log.Println(notifier)
 		notifier.Notify(r, "Test", "http://www.test.com", time.Now(), "up")
 	}
 	fmt.Fprint(w, "Sending Email")
