@@ -52,25 +52,31 @@ func GetHistory(r *http.Request, siteID int64) (loggroups []HistoryGroup, err er
 				group.Logs = append(group.Logs, entry)
 			} else {
 				// status change
-				group.End = entry.Checked
+				group.Start = entry.Checked
+				if i != 0 {
+					group.Start = logentries[i-1].Checked
+				}
 				loggroups = append(loggroups, group)
 				group = HistoryGroup{
 					Status: entry.Status,
-					Start:  entry.Checked,
+					End:    entry.Checked,
 					Logs:   make([]History, 0),
+				}
+				if i != 0 {
+					group.End = logentries[i-1].Checked
 				}
 				group.Logs = append(group.Logs, entry)
 			}
 		} else {
 			// no logs
 			group.Status = entry.Status
-			group.Start = entry.Checked
+			group.End = entry.Checked
 			group.Logs = make([]History, 0)
 			group.Logs = append(group.Logs, entry)
 		}
 
 		if i == len(logentries)-1 {
-			group.End = entry.Checked
+			group.Start = entry.Checked
 			loggroups = append(loggroups, group)
 		}
 

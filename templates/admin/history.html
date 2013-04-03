@@ -31,8 +31,8 @@
 	</div>
 	{{with .Logs}}
 		{{range .}}
-			<div class="statusgroup {{.Status}}">
-				<p><span class="status {{.Status}}" title="{{.Status}}"></span> {{formatDate .End}} - {{formatDate .Start}}</p>
+			<div class="statusgroup up">
+				<p><span class="status {{.Status}}" title="{{.Status}}"></span> {{formatDate .Start}} - {{formatDate .End}}</p>
 				<div class="table">
 					<table class="table table-bordered table-condensed table-striped table-hover sortable">
 						<thead>
