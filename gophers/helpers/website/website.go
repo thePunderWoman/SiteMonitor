@@ -364,12 +364,12 @@ func (website Website) GetNotifiers(r *http.Request) (notifiers []notify.Notify,
 }
 
 func (website *Website) Check(r *http.Request) history.History {
-	status := rest.Get(website.URL, r)
+	status, code, response := rest.Get(website.URL, r)
 	prevStatus := website.Status.Status
 	var err error
 	if status {
 		send := prevStatus == "down"
-		website.Status = history.Log(r, website.ID, time.Now(), "up", send)
+		website.Status = history.Log(r, website.ID, time.Now(), "up", send, code, response)
 		if send {
 			err := website.EmailNotifiers(r)
 			if err != nil {
@@ -378,7 +378,7 @@ func (website *Website) Check(r *http.Request) history.History {
 		}
 	} else {
 		send := (prevStatus == "up") || (website.OkToSend(r))
-		website.Status = history.Log(r, website.ID, time.Now(), "down", send)
+		website.Status = history.Log(r, website.ID, time.Now(), "down", send, code, response)
 		if send {
 			err = website.EmailNotifiers(r)
 			if err != nil {
@@ -393,14 +393,14 @@ func (website Website) EmailNotifiers(r *http.Request) (err error) {
 	notifiers, err := website.GetNotifiers(r)
 	if err == nil {
 		for i := 0; i < len(notifiers); i++ {
-			notifiers[i].Notify(r, website.Name, website.URL, website.Status.Checked, website.Status.Status)
+			notifiers[i].Notify(r, website.Name, website.URL, website.Status.Checked, website.Status.Status, website.Status.Code, website.Status.ResponseTime)
 		}
 	}
 	return
 }
 
-func (website Website) GetHistory(r *http.Request, page int, perpage int) (logs []history.History, pages int, err error) {
-	logs, pages, err = history.GetHistory(r, website.ID, page, perpage)
+func (website Website) GetHistory(r *http.Request) (logs []history.HistoryGroup, err error) {
+	logs, err = history.GetHistory(r, website.ID)
 	return
 }
 

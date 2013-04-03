@@ -34,5 +34,13 @@ require(
 				},'json')
 			}
 		});
+		$(document).on('click','.statusgroup p', function(e){
+			e.preventDefault();
+			if($(this).parent().hasClass('up')) {
+				$(this).parent().removeClass('up').addClass('down');
+			} else {
+				$(this).parent().removeClass('down').addClass('up');
+			}
+		});
 	}
 )

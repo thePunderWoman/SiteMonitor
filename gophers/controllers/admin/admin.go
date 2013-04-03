@@ -242,7 +242,7 @@ func TestSend(w http.ResponseWriter, r *http.Request) {
 	notifier, err := notify.Get(r)
 	if err == nil {
 		log.Println(notifier)
-		notifier.Notify(r, "Test", "http://www.test.com", time.Now(), "up")
+		notifier.Notify(r, "Test", "http://www.test.com", time.Now(), "up", 200, 12)
 	}
 	fmt.Fprint(w, "Sending Email")
 }
@@ -342,8 +342,7 @@ func GetHistory(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var tmpl plate.Template
 	var site website.Website
-	var logs []history.History
-	var total int
+	var logs []history.HistoryGroup
 	tmplChan := make(chan int)
 	logChan := make(chan int)
 
@@ -358,42 +357,23 @@ func GetHistory(w http.ResponseWriter, r *http.Request) {
 				Local, _ := time.LoadLocation("US/Central")
 				return dt.In(Local).Format(layout)
 			},
-			"showPagination": func(pages int) bool {
-				return pages > 1
-			},
-			"showPrev": func(page int) bool {
-				return page != 1
-			},
-			"showNext": func(page int, pages int) bool {
-				return page < pages
-			},
-			"prevPage": func(page int) int {
-				return page - 1
-			},
-			"nextPage": func(page int) int {
-				return page + 1
+			"formatDecimal": func(dc float64) string {
+				if !math.IsNaN(float64(dc)) {
+					return fmt.Sprintf("%.2f", dc) + " ms"
+				}
+				return "-"
 			},
 		}
 		tmplChan <- 1
 	}()
 
 	params := r.URL.Query()
-	page, err := strconv.Atoi(params.Get(":page"))
-	if err != nil {
-		page = 1
-	}
-
-	perpage, err := strconv.Atoi(params.Get(":perpage"))
-	if err != nil {
-		perpage = 50
-	}
-
 	go func() {
 		var keynum int64
 		keynum, _ = strconv.ParseInt(params.Get(":key"), 10, 64)
 		site, _, err = website.Get(r, keynum)
 
-		logs, total, err = site.GetHistory(r, page, perpage)
+		logs, err = site.GetHistory(r)
 		logChan <- 1
 	}()
 
@@ -405,19 +385,6 @@ func GetHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pages := int(math.Ceil(float64(total) / float64(perpage)))
-	start := ((page - 1) * perpage) + 1
-	end := start + perpage - 1
-	if end > total {
-		end = total
-	}
-
-	tmpl.Bag["Page"] = page
-	tmpl.Bag["PerPage"] = perpage
-	tmpl.Bag["Pages"] = pages
-	tmpl.Bag["Total"] = total
-	tmpl.Bag["Start"] = start
-	tmpl.Bag["End"] = end
 	tmpl.Bag["Site"] = site
 	tmpl.Bag["Logs"] = logs
 	tmpl.Template = "templates/admin/history.html"

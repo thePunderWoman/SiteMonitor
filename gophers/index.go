@@ -34,7 +34,6 @@ func init() {
 	server.Get("/Emails/:key", admin.GetNotifiers).Secure()
 	server.Get("/Emails/:key/:error", admin.GetNotifiers).Secure()
 	server.Get("/History/:key", admin.GetHistory).Secure()
-	server.Get("/History/:key/:page/:perpage", admin.GetHistory).Secure()
 
 	//Cron Task
 	server.Get("/Check", admin.Check)

@@ -11,20 +11,27 @@ import (
 )
 
 type History struct {
-	ID      int64
-	SiteID  int64
-	Checked time.Time
-	Status  string
-	Emailed bool
-	Percent float32
+	ID           int64
+	SiteID       int64
+	Checked      time.Time
+	Status       string
+	Emailed      bool
+	Percent      float32
+	Code         int
+	ResponseTime float64
 }
 
-func GetHistory(r *http.Request, siteID int64, page int, perpage int) (logentries []History, entries int, err error) {
+type HistoryGroup struct {
+	Status string
+	Start  time.Time
+	End    time.Time
+	Logs   []History
+}
+
+func GetHistory(r *http.Request, siteID int64) (loggroups []HistoryGroup, err error) {
 	c := appengine.NewContext(r)
-	offset := (page - 1) * perpage
-	q := datastore.NewQuery("history").Filter("SiteID =", siteID).Order("-Checked").Limit(perpage).Offset(offset)
-	q2 := datastore.NewQuery("history").Filter("SiteID =", siteID)
-	entries, _ = q2.Count(c)
+	q := datastore.NewQuery("history").Filter("SiteID =", siteID).Order("-Checked")
+	logentries := make([]History, 0)
 	for t := q.Run(c); ; {
 		var x History
 		_, err := t.Next(&x)
@@ -34,7 +41,41 @@ func GetHistory(r *http.Request, siteID int64, page int, perpage int) (logentrie
 		logentries = append(logentries, x)
 	}
 
-	return logentries, entries, err
+	var group HistoryGroup
+	for i, entry := range logentries {
+		//if group != nil {
+		if group.Logs != nil && len(group.Logs) > 0 {
+			//logs exist
+			// check if status matches
+			if entry.Status == group.Status {
+				// append to Logs list
+				group.Logs = append(group.Logs, entry)
+			} else {
+				// status change
+				group.End = entry.Checked
+				loggroups = append(loggroups, group)
+				group = HistoryGroup{
+					Status: entry.Status,
+					Start:  entry.Checked,
+					Logs:   make([]History, 0),
+				}
+				group.Logs = append(group.Logs, entry)
+			}
+		} else {
+			// no logs
+			group.Status = entry.Status
+			group.Start = entry.Checked
+			group.Logs = make([]History, 0)
+			group.Logs = append(group.Logs, entry)
+		}
+
+		if i == len(logentries)-1 {
+			group.End = entry.Checked
+			loggroups = append(loggroups, group)
+		}
+
+	}
+	return loggroups, err
 }
 
 func GetStatus(r *http.Request, siteID int64) (status History, err error) {
@@ -73,7 +114,7 @@ func Uptime(r *http.Request, siteID int64, status string) (uptime float32) {
 	if status == "up" {
 		uptotal += 1
 	}
-	
+
 	// Run uptime calculation
 	uptime = (float32(uptotal) / float32(total)) * 100.0
 	// Check for errors
@@ -83,13 +124,15 @@ func Uptime(r *http.Request, siteID int64, status string) (uptime float32) {
 	return uptime
 }
 
-func Log(r *http.Request, siteID int64, checked time.Time, status string, emailed bool) (logentry History) {
+func Log(r *http.Request, siteID int64, checked time.Time, status string, emailed bool, code int, resptime float64) (logentry History) {
 	logentry = History{
-		SiteID:  siteID,
-		Checked: checked,
-		Status:  status,
-		Emailed: emailed,
-		Percent: Uptime(r, siteID, status),
+		SiteID:       siteID,
+		Checked:      checked,
+		Status:       status,
+		Emailed:      emailed,
+		Percent:      Uptime(r, siteID, status),
+		Code:         code,
+		ResponseTime: resptime,
 	}
 	return
 }

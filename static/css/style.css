@@ -211,6 +211,49 @@ p.totals span {
     float: right;
 }
 
+div.statusgroup {
+    display: block;
+}
+
+div.statusgroup p {
+    cursor: pointer;
+    position: relative;
+    display: block;
+}
+
+div.statusgroup p::before {
+    content: "";
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-left: 5px solid #222;
+    border-right: none;
+    margin-right: 5px;
+    display: inline-block;
+    vertical-align: middle;
+    transition-duration: .4s;
+    -moz-transition-duration: .4s; /* Firefox 4 */
+    -webkit-transition-duration: .4s; /* Safari and Chrome */
+    -o-transition-duration: .4s; /* Opera */
+}
+
+div.statusgroup div.table {
+    display: block;
+    padding-left: 20px;
+}
+
+div.up div.table { 
+    display: none;
+}
+
+div.down p::before {
+    transform:rotate(90deg);
+    -ms-transform:rotate(90deg); /* IE 9 */
+    -moz-transform:rotate(90deg); /* Firefox */
+    -webkit-transform:rotate(90deg); /* Safari and Chrome */
+    -o-transform:rotate(90deg); /* Opera */
+}
+
 
 /* ==========================================================================
      Helper classes

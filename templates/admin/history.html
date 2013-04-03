@@ -30,24 +30,33 @@
 		</div>
 	</div>
 	{{with .Logs}}
-		<table class="table table-bordered table-condensed table-striped table-hover sortable">
-			<thead>
-				<tr>
-					<th>Checked</th>
-					<th>Status</th>
-					<th>Email Sent</th>
-				</tr>
-			</thead>
-			<tbody>
-				{{range .}}
-					<tr>
-						<td>{{formatDate .Checked}}</td>
-						<td class="center"><span class="status {{.Status}}" title="{{.Status}}"></span></td>
-						<td>{{if .Emailed}}Yes{{else}}No{{end}}</td>
-					</tr>
-				{{end}}
-			</tbody>
-		</table>
+		{{range .}}
+			<div class="statusgroup {{.Status}}">
+				<p><span class="status {{.Status}}" title="{{.Status}}"></span> {{formatDate .End}} - {{formatDate .Start}}</p>
+				<div class="table">
+					<table class="table table-bordered table-condensed table-striped table-hover sortable">
+						<thead>
+							<tr>
+								<th>Checked</th>
+								<th>Code</th>
+								<th>Response Time</th>
+								<th>Email Sent</th>
+							</tr>
+						</thead>
+						<tbody>
+							{{range .Logs}}
+								<tr>
+									<td>{{formatDate .Checked}}</td>
+									<td class="center">{{.Code}}</td>
+									<td class="center">{{formatDecimal .ResponseTime}}</td>
+									<td>{{if .Emailed}}Yes{{else}}No{{end}}</td>
+								</tr>
+							{{end}}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		{{end}}
 	{{else}}
 		<div class="alert alert-info">
 			<button class="close" type="button" data-dismiss="alert">x</button>
@@ -55,19 +64,4 @@
 			We currently don't have any history to display
 		</div>
 	{{end}}
-	{{if showPagination .Pages}}
-		<ul class="pager">
-			{{if showPrev .Page}}
-		  		<li class="previous">
-		    		<a href="/history/{{.Site.ID}}/{{prevPage .Page}}/{{.PerPage}}">&larr; Older</a>
-		  		</li>
-		  	{{end}}
-		  	{{if showNext .Page .Pages}}
-				<li class="next">
-					<a href="/history/{{.Site.ID}}/{{nextPage .Page}}/{{.PerPage}}">Newer &rarr;</a>
-				</li>
-		  	{{end}}
-		</ul>
-	{{end}}
-	<p class="totals">Log Entries {{.Start}} through {{.End}} of {{.Total}} <span>Page {{.Page}} of {{.Pages}}</span></p>
  {{end}}

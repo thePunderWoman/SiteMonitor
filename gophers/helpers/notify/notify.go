@@ -87,7 +87,7 @@ func Save(r *http.Request) (err error) {
 
 }
 
-func (notifier *Notify) Notify(r *http.Request, name string, url string, lastChecked time.Time, template string) {
+func (notifier *Notify) Notify(r *http.Request, name string, url string, lastChecked time.Time, template string, code int, responseTime float64) {
 	layout := "Mon, 01/02/06, 3:04PM MST"
 	Local, _ := time.LoadLocation("US/Central")
 	localChecked := lastChecked.In(Local).Format(layout)
@@ -103,7 +103,7 @@ func (notifier *Notify) Notify(r *http.Request, name string, url string, lastChe
 	} else {
 		tos = []string{notifier.Email}
 		subject = name + " Site Outage Warning!"
-		body = "<html><body><p>Hello " + notifier.Name + "</p><p>The " + name + " website at " + url + " is down as of " + localChecked + ".</p></body></html>"
+		body = "<html><body><p>Hello " + notifier.Name + "</p><p>The " + name + " website at " + url + " is down as of " + localChecked + ". It responded with an error code of " + strconv.Itoa(code) + " and a response time of " + strconv.FormatFloat(responseTime, 'g', -1, 64) + " ms.</p></body></html>"
 	}
 	email.Send(r, tos, subject, body, true)
 }
