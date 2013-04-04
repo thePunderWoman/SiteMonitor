@@ -16,7 +16,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	var tmpl plate.Template
-	var sites []website.Website
+	var sites []models.Website
 	siteChan := make(chan int)
 	tmplChan := make(chan int)
 
@@ -50,7 +50,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	go func() {
-		sites, err = website.GetAll(r)
+		w := models.Website{}
+		sites, err = w.GetAll()
 		siteChan <- 1
 	}()
 

@@ -5,11 +5,12 @@ import (
 	//"errors"
 	"log"
 	"math"
-	"net/http"
 	"time"
 )
 
 var (
+	UTC, _ = time.LoadLocation("UTC")
+
 	getSiteHistoryStmt = `select * from History
 						where siteID = ?
 						order by checked desc`
@@ -51,6 +52,13 @@ func GetHistory(siteID int) (loggroups []HistoryGroup, err error) {
 		return loggroups, err
 	}
 
+	params := struct {
+		SiteID int
+	}{}
+
+	params.SiteID = siteID
+	sel.Bind(&params)
+
 	rows, res, err := sel.Exec()
 	if database.MysqlError(err) {
 		return loggroups, err
@@ -68,18 +76,18 @@ func GetHistory(siteID int) (loggroups []HistoryGroup, err error) {
 	for _, row := range rows {
 		history := History{
 			ID:           row.Int(id),
-			SiteID:       row.Str(sID),
-			Checked:      row.Time(checked),
+			SiteID:       row.Int(sID),
+			Checked:      row.Time(checked, UTC),
 			Status:       row.Str(status),
 			Emailed:      row.Bool(emailed),
-			Code:         row.Bool(code),
-			ResponseTime: row.Int(responseTime),
+			Code:         row.Int(code),
+			ResponseTime: row.Float(responseTime),
 		}
 		logs = append(logs, history)
 	}
 
 	var group HistoryGroup
-	for i, entry := range logentries {
+	for i, entry := range logs {
 		//if group != nil {
 		if group.Logs != nil && len(group.Logs) > 0 {
 			//logs exist
@@ -91,7 +99,7 @@ func GetHistory(siteID int) (loggroups []HistoryGroup, err error) {
 				// status change
 				group.Start = entry.Checked
 				if i != 0 {
-					group.Start = logentries[i-1].Checked
+					group.Start = logs[i-1].Checked
 				}
 				loggroups = append(loggroups, group)
 				group = HistoryGroup{
@@ -100,7 +108,7 @@ func GetHistory(siteID int) (loggroups []HistoryGroup, err error) {
 					Logs:   make([]History, 0),
 				}
 				if i != 0 {
-					group.End = logentries[i-1].Checked
+					group.End = logs[i-1].Checked
 				}
 				group.Logs = append(group.Logs, entry)
 			}
@@ -112,7 +120,7 @@ func GetHistory(siteID int) (loggroups []HistoryGroup, err error) {
 			group.Logs = append(group.Logs, entry)
 		}
 
-		if i == len(logentries)-1 {
+		if i == len(logs)-1 {
 			group.Start = entry.Checked
 			loggroups = append(loggroups, group)
 		}
@@ -121,7 +129,7 @@ func GetHistory(siteID int) (loggroups []HistoryGroup, err error) {
 	return loggroups, err
 }
 
-func GetStatus(r *http.Request, siteID int64) (history History, err error) {
+func GetStatus(siteID int) (history History, err error) {
 	sel, err := database.Db.Prepare(getSiteHistoryStmt)
 	if err != nil {
 		return history, err
@@ -141,16 +149,16 @@ func GetStatus(r *http.Request, siteID int64) (history History, err error) {
 	responseTime := res.Map("responseTime")
 
 	if err != nil { // Must be something wrong with the db, lets bail
-		return err
+		return history, err
 	} else if row != nil { // populate history object
 		history = History{
 			ID:           row.Int(id),
-			SiteID:       row.Str(sID),
-			Checked:      row.Time(checked),
+			SiteID:       row.Int(sID),
+			Checked:      row.Time(checked, UTC),
 			Status:       row.Str(status),
 			Emailed:      row.Bool(emailed),
-			Code:         row.Bool(code),
-			ResponseTime: row.Int(responseTime),
+			Code:         row.Int(code),
+			ResponseTime: row.Float(responseTime),
 		}
 	}
 	return history, err
@@ -163,7 +171,7 @@ func GetLastEmail(siteID int) (logentry History, err error) {
 	}
 
 	params := struct {
-		SiteID int
+		SiteID *int
 	}{}
 
 	params.SiteID = &siteID
@@ -184,16 +192,16 @@ func GetLastEmail(siteID int) (logentry History, err error) {
 	responseTime := res.Map("responseTime")
 
 	if err != nil { // Must be something wrong with the db, lets bail
-		return err
+		return logentry, err
 	} else if row != nil { // populate history object
 		logentry = History{
 			ID:           row.Int(id),
-			SiteID:       row.Str(sID),
-			Checked:      row.Time(checked),
+			SiteID:       row.Int(sID),
+			Checked:      row.Time(checked, UTC),
 			Status:       row.Str(status),
 			Emailed:      row.Bool(emailed),
-			Code:         row.Bool(code),
-			ResponseTime: row.Int(responseTime),
+			Code:         row.Int(code),
+			ResponseTime: row.Float(responseTime),
 		}
 	}
 	return logentry, err
@@ -203,12 +211,12 @@ func GetUptime(siteID int) (uptime float32) {
 	uptime = 0
 	sel, err := database.Db.Prepare(getSiteUptimeStmt)
 	if err != nil {
-		return uptime, err
+		return uptime
 	}
 
 	params := struct {
-		ID1 int
-		ID2 int
+		ID1 *int
+		ID2 *int
 	}{}
 
 	params.ID1 = &siteID
@@ -218,7 +226,7 @@ func GetUptime(siteID int) (uptime float32) {
 
 	row, res, err := sel.ExecFirst()
 	if database.MysqlError(err) {
-		return uptime, err
+		return uptime
 	}
 
 	up := row.Int(res.Map("upcount"))
@@ -258,7 +266,7 @@ func SaveLogs(logs []History) {
 func (entry *History) Save() {
 	ins, err := database.Db.Prepare(insertLogStmt)
 	if err != nil {
-		return success, err
+		log.Fatal(err)
 	}
 
 	params := struct {
@@ -276,7 +284,7 @@ func (entry *History) Save() {
 	params.ResponseTime = entry.ResponseTime
 
 	ins.Bind(&params)
-	_, err = ins.Run()
+	_, _, err = ins.Exec()
 }
 
 func ClearOld(siteID int, days int) {
@@ -287,14 +295,14 @@ func ClearOld(siteID int, days int) {
 	deleteBefore := time.Now().AddDate(0, 0, -days)
 	params := struct {
 		SiteID  int
-		Checked time
+		Checked time.Time
 	}{}
 
 	params.SiteID = siteID
 	params.Checked = deleteBefore
 
 	del.Bind(&params)
-	_, err = ins.Run()
+	_, _, err = del.Exec()
 	if err != nil {
 		log.Fatal(err)
 	}

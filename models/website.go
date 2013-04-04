@@ -2,18 +2,17 @@ package models
 
 import (
 	"../helpers/database"
-	"encoding/json"
+	"../helpers/rest"
 	"errors"
 	"log"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
 )
 
 type Website struct {
-	ID            int64
+	ID            int
 	Name          string
 	URL           string
 	Interval      int
@@ -25,28 +24,22 @@ type Website struct {
 	LogDays       int
 }
 
-type WebsiteSave struct {
-	ID            int64
-	Name          string
-	URL           string
-	Interval      int
-	Monitoring    bool
-	Public        bool
-	EmailInterval int
-	LogDays       int
-}
-
 var (
-	getAllWebsitesStmt = `select * from Website order by name`
+	getAllWebsitesStmt           = `select * from Website order by name`
+	getAllMonitoringWebsitesStmt = `select * from Website where monitoring = 1`
+	getWebsiteByIDStmt           = `select * from Website where id = ?`
+	deleteWebsiteByIDStmt        = `delete from Website where id = ?`
+	deleteHistoryBySiteStmt      = `delete from History where siteID = ?`
+	deleteNotifiersBySiteStmt    = `delete from Notify where siteID = ?`
+	insertWebsiteStmt            = `insert into Website (name,URL,interval,monitoring,public,emailInterval,logDays) VALUES (?,?,?,?,?,?,?)`
+	updateWebsiteStmt            = `update Website set name = ?, URL = ?, interval = ?, monitoring = ?, public = ?, emailInterval = ?, logDays = ? WHERE id = ?`
 )
 
 func (website Website) IntervalMins() int {
 	return website.Interval * website.EmailInterval
 }
 
-func (website Website) GetAll(r *http.Request) (sites []Website, err error) {
-	var history History
-
+func (website Website) GetAll() (sites []Website, err error) {
 	sel, err := database.Db.Prepare(getAllWebsitesStmt)
 	if err != nil {
 		return sites, err
@@ -67,6 +60,7 @@ func (website Website) GetAll(r *http.Request) (sites []Website, err error) {
 	logDays := res.Map("logDays")
 
 	for _, row := range rows {
+		status, _ := GetStatus(row.Int(id))
 		site := Website{
 			ID:            row.Int(id),
 			Name:          row.Str(name),
@@ -74,10 +68,10 @@ func (website Website) GetAll(r *http.Request) (sites []Website, err error) {
 			Interval:      row.Int(interval),
 			Monitoring:    row.Bool(monitoring),
 			Public:        row.Bool(public),
-			EmailInverval: row.Int(emailInverval),
+			EmailInterval: row.Int(emailInverval),
 			LogDays:       row.Int(logDays),
 			Uptime:        GetUptime(row.Int(id)),
-			Status:        GetStatus(row.Int(id)),
+			Status:        status,
 		}
 		sites = append(sites, site)
 	}
@@ -85,157 +79,41 @@ func (website Website) GetAll(r *http.Request) (sites []Website, err error) {
 	return sites, err
 }
 
-func UpdateCachedSites(r *http.Request) {
-	c := appengine.NewContext(r)
-	var item *memcache.Item
-
-	// retreive websites
-	q := datastore.NewQuery("website").Order("Name")
-	sites := make([]Website, 0)
-	_, err := q.GetAll(c, &sites)
-	for i := 0; i < len(sites); i++ {
-		sites[i].Status, err = history.GetStatus(r, sites[i].ID)
-	}
-
-	if err != nil {
-		log.Fatal("Error retreiving sites from datastore")
-	}
-	sitesdata, err := json.Marshal(sites)
-
-	// Get the item from the memcache
-	if item, err = memcache.Get(c, "sites"); err == memcache.ErrCacheMiss {
-		// item doesn't exist at all...add it
-		item := &memcache.Item{
-			Key:   "sites",
-			Value: sitesdata,
-		}
-		err = memcache.Add(c, item)
-	} else {
-		// item does exist, update
-		item.Value = sitesdata
-		_ = memcache.Set(c, item)
-	}
-}
-
-func CacheStatusChange(r *http.Request, logs map[int64]History) {
-	c := appengine.NewContext(r)
-	var item *memcache.Item
-
-	sites, err := GetAll(r)
-	for i := 0; i < len(sites); i++ {
-		if logentry, ok := logs[sites[i].ID]; ok {
-			sites[i].Status = logentry
-		}
-	}
-	item, err = memcache.Get(c, "sites")
+func CleanLogs() {
+	sel, err := database.Db.Prepare(getAllMonitoringWebsitesStmt)
 	if err != nil {
 		log.Fatal(err)
 	}
-	sitesdata, _ := json.Marshal(sites)
-	item.Value = sitesdata
-	_ = memcache.Set(c, item)
-}
 
-func CacheSiteChange(r *http.Request, site WebsiteSave) {
-	c := appengine.NewContext(r)
-	var item *memcache.Item
-	exists := false
-
-	cacheSite := Website{
-		ID:            site.ID,
-		Name:          site.Name,
-		URL:           site.URL,
-		Interval:      site.Interval,
-		Monitoring:    site.Monitoring,
-		Public:        site.Public,
-		EmailInterval: site.EmailInterval,
-		LogDays:       site.LogDays,
+	rows, res, err := sel.Exec()
+	if database.MysqlError(err) {
+		log.Fatal(err)
 	}
-	cacheSite.Status, _ = history.GetStatus(r, cacheSite.ID)
 
-	sites, err := GetAll(r)
-	for i := 0; i < len(sites); i++ {
-		if sites[i].ID == site.ID {
-			sites[i] = cacheSite
-			exists = true
+	id := res.Map("id")
+	logDays := res.Map("logDays")
+
+	var sites []Website
+	for _, row := range rows {
+		site := Website{
+			ID:      row.Int(id),
+			LogDays: row.Int(logDays),
 		}
-	}
-	sitelist := sites
-	if !exists {
-		sitelist = append(sites, cacheSite)
-		sort.Sort(ByName{sitelist})
+		sites = append(sites, site)
 	}
 
-	if item, err = memcache.Get(c, "sites"); err == memcache.ErrCacheMiss {
-		sitesdata, _ := json.Marshal(sitelist)
-		item := &memcache.Item{
-			Key:   "sites",
-			Value: sitesdata,
-		}
-		_ = memcache.Add(c, item)
-	} else {
-		sitesdata, _ := json.Marshal(sitelist)
-		item.Value = sitesdata
-		_ = memcache.Set(c, item)
-	}
-}
-
-func RemoveFromCache(r *http.Request, siteID int64) {
-	c := appengine.NewContext(r)
-	var item *memcache.Item
-
-	target := -1
-	sites, err := GetAll(r)
-	for i := 0; i < len(sites); i++ {
-		if sites[i].ID == siteID {
-			target = i
-		}
-	}
-	if target > -1 {
-		sitelist := make([]Website, len(sites)-1)
-		count := 0
-		for i := 0; i < len(sites); i++ {
-			if sites[i].ID != siteID {
-				sitelist[count] = sites[i]
-				count++
-			}
-		}
-		// sort	
-		sort.Sort(ByName{sitelist})
-
-		if item, err = memcache.Get(c, "sites"); err == memcache.ErrCacheMiss {
-			sitesdata, _ := json.Marshal(sitelist)
-			item := &memcache.Item{
-				Key:   "sites",
-				Value: sitesdata,
-			}
-			_ = memcache.Add(c, item)
-		} else {
-			sitesdata, _ := json.Marshal(sitelist)
-			item.Value = sitesdata
-			_ = memcache.Set(c, item)
-		}
-	}
-}
-
-func CleanLogs(r *http.Request) {
-	// this task runs only once a day
-	c := appengine.NewContext(r)
-	q := datastore.NewQuery("website").Filter("Monitoring =", true)
-
-	sites := make([]Website, 0)
-	_, err := q.GetAll(c, &sites)
 	if err == nil {
-		for i := 0; i < len(sites); i++ {
-			history.ClearOld(r, sites[i].ID, sites[i].LogDays)
+		for _, site := range sites {
+			ClearOld(site.ID, site.LogDays)
 		}
 	}
 }
 
 func CheckSites(r *http.Request) (err error) {
-	sites, err := GetAll(r)
+	s := Website{}
+	sites, err := s.GetAll()
 	now := time.Now()
-	logs := make(map[int64]history.History)
+	var logs []History
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -243,55 +121,113 @@ func CheckSites(r *http.Request) (err error) {
 		for i := 0; i < len(sites); i++ {
 			dur := time.Duration(sites[i].Interval) * time.Minute
 
-			var status history.History
+			var status History
 			if sites[i].Status.Checked.IsZero() {
-				status, _ = history.GetStatus(r, sites[i].ID)
+				status, _ = GetStatus(sites[i].ID)
 			} else {
 				status = sites[i].Status
 			}
 
 			if now.Sub(status.Checked) >= dur {
-				logs[sites[i].ID] = sites[i].Check(r)
+				logs = append(logs, sites[i].Check(r))
 			}
 		}
 	}
-	history.SaveLogs(r, logs)
-	CacheStatusChange(r, logs)
+	SaveLogs(logs)
+	//CacheStatusChange(r, logs)
 
 	return err
 }
 
-func (website Website) Get(r *http.Request, key int64) (site Website, sitesave WebsiteSave, err error) {
-
-	c := appengine.NewContext(r)
-	k := datastore.NewKey(c, "website", "", key, nil)
-	err = datastore.Get(c, k, &sitesave)
-	if err == nil {
-		site.ID = sitesave.ID
-		site.Name = sitesave.Name
-		site.URL = sitesave.URL
-		site.Interval = sitesave.Interval
-		site.Monitoring = sitesave.Monitoring
-		site.Public = sitesave.Public
-		site.EmailInterval = sitesave.EmailInterval
-		site.LogDays = sitesave.LogDays
-		site.Status, err = history.GetStatus(r, sitesave.ID)
+func (website Website) Get(id int) (site Website, err error) {
+	sel, err := database.Db.Prepare(getWebsiteByIDStmt)
+	if err != nil {
+		return site, err
 	}
-	return site, sitesave, err
+
+	params := struct {
+		id int
+	}{}
+
+	params.id = id
+
+	sel.Bind(&params)
+
+	row, res, err := sel.ExecFirst()
+	if database.MysqlError(err) {
+		return site, err
+	}
+
+	idval := res.Map("id")
+	name := res.Map("name")
+	url := res.Map("URL")
+	interval := res.Map("interval")
+	monitoring := res.Map("monitoring")
+	public := res.Map("public")
+	emailInterval := res.Map("emailInterval")
+	logDays := res.Map("logDays")
+
+	status, _ := GetStatus(row.Int(idval))
+	site = Website{
+		ID:            row.Int(idval),
+		Name:          row.Str(name),
+		URL:           row.Str(url),
+		Interval:      row.Int(interval),
+		Monitoring:    row.Bool(monitoring),
+		Public:        row.Bool(public),
+		EmailInterval: row.Int(emailInterval),
+		LogDays:       row.Int(logDays),
+		Uptime:        GetUptime(row.Int(idval)),
+		Status:        status,
+	}
+
+	return site, err
 }
 
 func (website Website) Delete(r *http.Request) (err error) {
-	c := appengine.NewContext(r)
-	var keynum int64
-	keynum, _ = strconv.ParseInt(r.FormValue("key"), 10, 64)
-	k := datastore.NewKey(c, "website", "", keynum, nil)
-	err = datastore.Delete(c, k)
-	RemoveFromCache(r, keynum)
+	siteID, _ := strconv.Atoi(r.FormValue("key"))
+	params := struct {
+		SiteID int
+	}{}
+	params.SiteID = siteID
+
+	del, err := database.Db.Prepare(deleteNotifierStmt)
+	if err != nil {
+		return err
+	}
+
+	del.Bind(&params)
+	_, _, err = del.Exec()
+	if err != nil {
+		return err
+	}
+
+	del, err = database.Db.Prepare(deleteHistoryBySiteStmt)
+	if err != nil {
+		return err
+	}
+
+	del.Bind(&params)
+	_, _, err = del.Exec()
+	if err != nil {
+		return err
+	}
+
+	del, err = database.Db.Prepare(deleteWebsiteByIDStmt)
+	if err != nil {
+		return err
+	}
+
+	del.Bind(&params)
+	_, _, err = del.Exec()
+	if err != nil {
+		return err
+	}
+
 	return
 }
 
 func (website Website) Save(r *http.Request) (err error) {
-	c := appengine.NewContext(r)
 	name := r.FormValue("name")
 	urlstr := r.FormValue("url")
 	interval, err := strconv.Atoi(r.FormValue("interval"))
@@ -318,64 +254,74 @@ func (website Website) Save(r *http.Request) (err error) {
 		return
 	}
 
-	var keynum int64
-	keynum, err = strconv.ParseInt(r.FormValue("siteID"), 10, 64)
+	siteID, err := strconv.Atoi(r.FormValue("siteID"))
 
 	if err != nil {
 		// new Website
-		site := WebsiteSave{
-			Name:          name,
-			URL:           urlstr,
-			Interval:      interval,
-			Monitoring:    monitoring,
-			Public:        public,
-			EmailInterval: emailInterval,
-			LogDays:       logdays,
+		params := struct {
+			Name          string
+			URL           string
+			Interval      int
+			Monitoring    bool
+			Public        bool
+			EmailInterval int
+			LogDays       int
+		}{}
+
+		params.Name = name
+		params.URL = urlstr
+		params.Interval = interval
+		params.Monitoring = monitoring
+		params.Public = public
+		params.EmailInterval = emailInterval
+		params.LogDays = logdays
+
+		ins, err := database.Db.Prepare(insertWebsiteStmt)
+		if err != nil {
+			return err
 		}
 
-		err := datastore.RunInTransaction(c, func(c appengine.Context) error {
-			// Note: this function's argument c shadows the variable c
-			//       from the surrounding function.
+		ins.Bind(&params)
+		_, _, err = ins.Exec()
 
-			key, err := datastore.Put(c, datastore.NewIncompleteKey(c, "website", nil), &site)
-
-			if err == nil {
-				site.ID = key.IntID()
-				key, err = datastore.Put(c, key, &site)
-			}
-
-			CacheSiteChange(r, site)
-			return err
-		}, nil)
 		return err
 	} else {
-		// update website
-		err := datastore.RunInTransaction(c, func(c appengine.Context) error {
-			k := datastore.NewKey(c, "website", "", keynum, nil)
-			_, site, err := Get(r, keynum)
-			if err != nil {
-				return err
-			}
-			site.ID = keynum
-			site.Name = name
-			site.URL = urlstr
-			site.Interval = interval
-			site.Monitoring = monitoring
-			site.Public = public
-			site.LogDays = logdays
-			site.EmailInterval = emailInterval
+		// new Website
+		params := struct {
+			Name          string
+			URL           string
+			Interval      int
+			Monitoring    bool
+			Public        bool
+			EmailInterval int
+			LogDays       int
+			SiteID        int
+		}{}
 
-			_, err = datastore.Put(c, k, &site)
-			CacheSiteChange(r, site)
+		params.Name = name
+		params.URL = urlstr
+		params.Interval = interval
+		params.Monitoring = monitoring
+		params.Public = public
+		params.EmailInterval = emailInterval
+		params.LogDays = logdays
+		params.SiteID = siteID
+
+		upd, err := database.Db.Prepare(updateWebsiteStmt)
+		if err != nil {
 			return err
-		}, nil)
+		}
+
+		upd.Bind(&params)
+		_, _, err = upd.Exec()
 		return err
 	}
 	return
 }
 
 func (website Website) GetNotifiers(r *http.Request) (notifiers []Notify, err error) {
-	notifiers, err = notify.GetAllBySite(r, website.ID)
+	n := Notify{}
+	notifiers, err = n.GetAllBySite(website.ID)
 	return
 }
 
@@ -385,7 +331,7 @@ func (website *Website) Check(r *http.Request) History {
 	var err error
 	if status {
 		send := prevStatus == "down"
-		website.Status = history.Log(r, website.ID, time.Now(), "up", send, code, response)
+		website.Status = Log(website.ID, time.Now(), "up", send, code, response)
 		if send {
 			err := website.EmailNotifiers(r)
 			if err != nil {
@@ -394,7 +340,7 @@ func (website *Website) Check(r *http.Request) History {
 		}
 	} else {
 		send := (prevStatus == "up") || (website.OkToSend(r))
-		website.Status = history.Log(r, website.ID, time.Now(), "down", send, code, response)
+		website.Status = Log(website.ID, time.Now(), "down", send, code, response)
 		if send {
 			err = website.EmailNotifiers(r)
 			if err != nil {
@@ -409,19 +355,19 @@ func (website Website) EmailNotifiers(r *http.Request) (err error) {
 	notifiers, err := website.GetNotifiers(r)
 	if err == nil {
 		for i := 0; i < len(notifiers); i++ {
-			notifiers[i].Notify(r, website.Name, website.URL, website.Status.Checked, website.Status.Status, website.Status.Code, website.Status.ResponseTime)
+			notifiers[i].Notify(website.Name, website.URL, website.Status.Checked, website.Status.Status, website.Status.Code, website.Status.ResponseTime)
 		}
 	}
 	return
 }
 
 func (website Website) GetHistory(r *http.Request) (logs []HistoryGroup, err error) {
-	logs, err = history.GetHistory(r, website.ID)
+	logs, err = GetHistory(website.ID)
 	return
 }
 
 func (website Website) OkToSend(r *http.Request) bool {
-	lastChange, err := history.GetLastEmail(r, website.ID)
+	lastChange, err := GetLastEmail(website.ID)
 	if err != nil {
 		return true
 	}

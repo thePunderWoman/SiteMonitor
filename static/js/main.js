@@ -21,10 +21,9 @@ require(
 		$(document).on('click','.delete-notifier',function(e){
 			e.preventDefault();
 			var key = $(this).data('key');
-			var parent = $(this).data('parent');
 			var curobj = $(this);
 			if(confirm('Are you sure you want to delete this email from the site notification list?')) {
-				$.post('/DeleteNotifier', { key: key, parent: parent }, function(data) {
+				$.post('/DeleteNotifier', { key: key }, function(data) {
 					if(data.success) {
 						var row = $(curobj).parent().parent().parent().parent().parent();
 						$(row).fadeOut('fast',function(){

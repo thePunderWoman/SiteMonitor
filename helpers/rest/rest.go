@@ -2,7 +2,6 @@ package rest
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http"
 	"time"
 )

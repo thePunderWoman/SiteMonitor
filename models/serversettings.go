@@ -27,13 +27,13 @@ type Setting struct {
 	Port     int
 }
 
-func (s Setting) Get() (setting *Setting, err error) {
+func (s Setting) Get() (setting Setting, err error) {
 	qry, err := database.Db.Prepare(getSettingsStmt)
 	if err != nil {
 		return setting, err
 	}
 
-	row, res, err := qry.ExecFirst(u.Id)
+	row, res, err := qry.ExecFirst()
 	if database.MysqlError(err) {
 		return setting, err
 	} else if row == nil {
@@ -52,11 +52,10 @@ func (s Setting) Get() (setting *Setting, err error) {
 		id:       row.Int(ID),
 		Server:   row.Str(server),
 		Email:    row.Str(email),
-		SSL:      row.Bool(SSL),
+		SSL:      row.Bool(ssl),
 		Username: row.Str(username),
 		Password: row.Str(password),
-		Phone:    row.Str(phone),
-		Port:     row.Str(port),
+		Port:     row.Int(port),
 	}
 
 	return setting, err
@@ -70,11 +69,11 @@ func (s Setting) Save(r *http.Request) (err error) {
 		return err
 	}
 
-	row, res, err := qry.ExecFirst(u.Id)
+	row, res, err := qry.ExecFirst()
 	if database.MysqlError(err) {
-		return setting, err
+		return err
 	} else if row == nil {
-		return setting, nil
+		return nil
 	}
 
 	settingID := row.Int(res.Map("id"))
@@ -100,12 +99,12 @@ func (s Setting) Save(r *http.Request) (err error) {
 		}
 
 		params := struct {
-			Server   string
-			Email    string
-			SSL      bool
-			Username string
-			Password string
-			Port     int
+			Server   *string
+			Email    *string
+			SSL      *bool
+			Username *string
+			Password *string
+			Port     *int
 		}{}
 
 		params.Server = &server
@@ -117,19 +116,22 @@ func (s Setting) Save(r *http.Request) (err error) {
 
 		ins.Bind(&params)
 
-		_, err = ins.Run()
+		_, _, err = ins.Exec()
 	} else {
 		// check if there's a row already
 		upd, err := database.Db.Prepare(updateSettingsStmt)
+		if err != nil {
+			return err
+		}
 
 		params := struct {
-			Server   string
-			Email    string
-			SSL      bool
-			Username string
-			Password string
-			Port     int
-			ID       int
+			Server   *string
+			Email    *string
+			SSL      *bool
+			Username *string
+			Password *string
+			Port     *int
+			ID       *int
 		}{}
 
 		params.Server = &server
@@ -138,11 +140,11 @@ func (s Setting) Save(r *http.Request) (err error) {
 		params.Username = &username
 		params.Password = &password
 		params.Port = &port
-		params.ID = settingID
+		params.ID = &settingID
 
 		upd.Bind(&params)
 
-		_, err = upd.Run()
+		_, _, err = upd.Exec()
 	}
 
 	return err

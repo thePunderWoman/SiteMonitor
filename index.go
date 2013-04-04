@@ -5,6 +5,8 @@ import (
 	"./controllers/admin"
 	"./controllers/auth"
 	"./helpers/plate"
+	"flag"
+	"log"
 	"net/http"
 )
 
@@ -46,7 +48,7 @@ func main() {
 	server.Post("/Delete", admin.Delete).Secure()
 	server.Post("/DeleteNotifier", admin.DeleteNotifier).Secure()
 	server.Post("/AddNotifier", admin.AddNotifier).Secure()
-	server.Get("/TestSend/:parent/:key", admin.TestSend).Secure()
+	server.Get("/TestSend/:key", admin.TestSend).Secure()
 	server.Get("/Emails/:key", admin.GetNotifiers).Secure()
 	server.Get("/Emails/:key/:error", admin.GetNotifiers).Secure()
 	server.Get("/History/:key", admin.GetHistory).Secure()

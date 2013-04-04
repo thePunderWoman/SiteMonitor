@@ -15,6 +15,7 @@ type Route struct {
 	filters     []http.HandlerFunc
 	contenttype string
 	unfiltered  bool // this will ignore all global filters on this route
+	auth        AuthHandler
 }
 
 func (this *Route) Sensitive() *Route {
@@ -49,4 +50,10 @@ func (this *Route) FilterParam(param string, filter http.HandlerFunc) {
 			filter(w, r)
 		}
 	})
+}
+
+// Secures a route using the default AuthHandler
+func (this *Route) Secure() *Route {
+	this.auth = DefaultAuthHandler
+	return this
 }

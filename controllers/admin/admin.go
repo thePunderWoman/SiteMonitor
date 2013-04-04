@@ -18,7 +18,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	session := plate.Session.Get(r)
 	var err error
 	var tmpl plate.Template
-	var sites []website.Website
+	var sites []models.Website
 	siteChan := make(chan int)
 	tmplChan := make(chan int)
 
@@ -45,7 +45,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	go func() {
-		sites, err = website.GetAll(r)
+		site := models.Website{}
+		sites, err = site.GetAll()
 		siteChan <- 1
 	}()
 
@@ -95,7 +96,7 @@ func Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl.Bag["Website"] = new(website.Website)
+	tmpl.Bag["Website"] = new(models.Website)
 	tmpl.Bag["Error"] = error
 	tmpl.Template = "templates/admin/form.html"
 
@@ -106,7 +107,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	server := plate.NewServer()
 	var err error
 	var tmpl plate.Template
-	var site website.Website
+	var site models.Website
 	tmplChan := make(chan int)
 	siteChan := make(chan int)
 
@@ -129,9 +130,8 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	go func() {
-		var keynum int64
-		keynum, _ = strconv.ParseInt(params.Get(":key"), 10, 64)
-		site, _, err = website.Get(r, keynum)
+		id, _ := strconv.Atoi(params.Get(":key"))
+		site, err = site.Get(id)
 		siteChan <- 1
 	}()
 
@@ -155,7 +155,8 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	siteChan := make(chan int)
 
 	go func() {
-		err = website.Delete(r)
+		site := models.Website{}
+		err = site.Delete(r)
 		siteChan <- 1
 	}()
 	<-siteChan
@@ -171,7 +172,8 @@ func Save(w http.ResponseWriter, r *http.Request) {
 	siteChan := make(chan int)
 
 	go func() {
-		err = website.Save(r)
+		site := models.Website{}
+		err = site.Save(r)
 		siteChan <- 1
 	}()
 	<-siteChan
@@ -192,8 +194,8 @@ func GetNotifiers(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	var tmpl plate.Template
-	var site website.Website
-	var notifiers []notify.Notify
+	var site models.Website
+	var notifiers []models.Notify
 	tmplChan := make(chan int)
 	siteChan := make(chan int)
 
@@ -208,9 +210,8 @@ func GetNotifiers(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		params := r.URL.Query()
 
-		var keynum int64
-		keynum, _ = strconv.ParseInt(params.Get(":key"), 10, 64)
-		site, _, err = website.Get(r, keynum)
+		id, _ := strconv.Atoi(params.Get(":key"))
+		site, err = site.Get(id)
 
 		if err != nil {
 			siteChan <- 1
@@ -236,10 +237,11 @@ func GetNotifiers(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestSend(w http.ResponseWriter, r *http.Request) {
-	notifier, err := notify.Get(r)
+	n := models.Notify{}
+	notifier, err := n.Get(r)
 	if err == nil {
 		log.Println(notifier)
-		notifier.Notify(r, "Test", "http://www.test.com", time.Now(), "up", 200, 12)
+		notifier.Notify("Test", "http://www.test.com", time.Now(), "up", 200, 12)
 	}
 	fmt.Fprint(w, "Sending Email")
 }
@@ -248,7 +250,8 @@ func AddNotifier(w http.ResponseWriter, r *http.Request) {
 	saveChan := make(chan int)
 	var err error
 	go func() {
-		err = notify.Save(r)
+		n := models.Notify{}
+		err = n.Save(r)
 		saveChan <- 1
 	}()
 
@@ -265,7 +268,8 @@ func DeleteNotifier(w http.ResponseWriter, r *http.Request) {
 	delChan := make(chan int)
 	var err error
 	go func() {
-		err = notify.Delete(r)
+		n := models.Notify{}
+		err = n.Delete(r)
 		delChan <- 1
 	}()
 	<-delChan
@@ -281,7 +285,7 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	var tmpl plate.Template
-	var settings *serversettings.Setting
+	var settings models.Setting
 	tmplChan := make(chan int)
 	settingChan := make(chan int)
 
@@ -298,7 +302,7 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	go func() {
-		settings, err = serversettings.Get()
+		settings, err = settings.Get()
 		settingChan <- 1
 	}()
 
@@ -322,7 +326,8 @@ func SaveSettings(w http.ResponseWriter, r *http.Request) {
 	settingChan := make(chan int)
 	var err error
 	go func() {
-		err = serversettings.Save(r)
+		setting := models.Setting{}
+		err = setting.Save(r)
 		settingChan <- 1
 	}()
 	<-settingChan
@@ -338,8 +343,8 @@ func GetHistory(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	var tmpl plate.Template
-	var site website.Website
-	var logs []history.HistoryGroup
+	var site models.Website
+	var logs []models.HistoryGroup
 	tmplChan := make(chan int)
 	logChan := make(chan int)
 
@@ -366,9 +371,9 @@ func GetHistory(w http.ResponseWriter, r *http.Request) {
 
 	params := r.URL.Query()
 	go func() {
-		var keynum int64
-		keynum, _ = strconv.ParseInt(params.Get(":key"), 10, 64)
-		site, _, err = website.Get(r, keynum)
+		id, _ := strconv.Atoi(params.Get(":key"))
+		s := models.Website{}
+		site, err = s.Get(id)
 
 		logs, err = site.GetHistory(r)
 		logChan <- 1
@@ -394,11 +399,11 @@ func ErrorPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func Check(w http.ResponseWriter, r *http.Request) {
-	website.CheckSites(r)
+	models.CheckSites(r)
 	fmt.Fprint(w, "Checking sites")
 }
 
 func CleanLogs(w http.ResponseWriter, r *http.Request) {
-	website.CleanLogs(r)
+	models.CleanLogs()
 	fmt.Fprint(w, "Cleaning Logs")
 }
