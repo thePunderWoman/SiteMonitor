@@ -21,6 +21,7 @@ type Website struct {
 	Status        History
 	Public        bool
 	EmailInterval int
+	Uptime        float32
 	LogDays       int
 }
 
@@ -35,33 +36,52 @@ type WebsiteSave struct {
 	LogDays       int
 }
 
+var (
+	getAllWebsitesStmt = `select * from Website order by name`
+)
+
 func (website Website) IntervalMins() int {
 	return website.Interval * website.EmailInterval
 }
 
 func (website Website) GetAll(r *http.Request) (sites []Website, err error) {
-	c := appengine.NewContext(r)
-	//sites, err := GetAll(r)
-	var item *memcache.Item
 	var history History
-	// Get the item from the memcache
-	if item, err = memcache.Get(c, "sites"); err == memcache.ErrCacheMiss {
-		q := datastore.NewQuery("website").Order("Name")
-		_, err = q.GetAll(c, &sites)
-		for i := 0; i < len(sites); i++ {
-			sites[i].Status, err = history.GetStatus(r, sites[i].ID)
-		}
-		if err == nil {
-			sitesdata, _ := json.Marshal(sites)
-			item := &memcache.Item{
-				Key:   "sites",
-				Value: sitesdata,
-			}
-			err = memcache.Add(c, item)
-		}
-	} else {
-		err = json.Unmarshal(item.Value, &sites)
+
+	sel, err := database.Db.Prepare(getAllWebsitesStmt)
+	if err != nil {
+		return sites, err
 	}
+
+	rows, res, err := sel.Exec()
+	if database.MysqlError(err) {
+		return sites, err
+	}
+
+	id := res.Map("id")
+	name := res.Map("name")
+	url := res.Map("URL")
+	interval := res.Map("interval")
+	monitoring := res.Map("monitoring")
+	public := res.Map("public")
+	emailInverval := res.Map("emailInterval")
+	logDays := res.Map("logDays")
+
+	for _, row := range rows {
+		site := Website{
+			ID:            row.Int(id),
+			Name:          row.Str(name),
+			URL:           row.Str(url),
+			Interval:      row.Int(interval),
+			Monitoring:    row.Bool(monitoring),
+			Public:        row.Bool(public),
+			EmailInverval: row.Int(emailInverval),
+			LogDays:       row.Int(logDays),
+			Uptime:        GetUptime(row.Int(id)),
+			Status:        GetStatus(row.Int(id)),
+		}
+		sites = append(sites, site)
+	}
+
 	return sites, err
 }
 

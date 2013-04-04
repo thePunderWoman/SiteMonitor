@@ -10,23 +10,29 @@ import (
 )
 
 var (
-	getSiteHistoryStmt = `select * from History as ak
-						where SiteID = ?`
+	getSiteHistoryStmt = `select * from History
+						where siteID = ?
+						order by checked desc`
 
 	getSiteHistoryUpCountStmt = `select COUNT(*) from History 
-								where SiteID = ? AND Status = 'up'`
+								where siteID = ? AND status = 'up'`
 
 	getSiteHistoryDownCountStmt = `select COUNT(*) from History 
-								where SiteID = ? AND Status = 'down'`
+								where siteID = ? AND Status = 'down'`
+	getSiteUptimeStmt = `select (select COUNT(*) FROM History WHERE status = 'up' AND siteID = ?) AS upcount, 
+								(select COUNT(*) FROM History WHERE siteID = ?) AS total`
+
+	getLastEmailStmt = `select * from History WHERE siteID = ? and emailed = 1 order by checked desc limit 1`
+	insertLogStmt    = `insert into History (siteID,checked,status,emailed,code,responseTime) VALUES (?,CURRENT_TIMESTAMP,?,?,?,?)`
+	clearOldLogsStmt = `delete from History WHERE siteID = ? and checked < ?`
 )
 
 type History struct {
-	ID           int64
-	SiteID       int64
+	ID           int
+	SiteID       int
 	Checked      time.Time
 	Status       string
 	Emailed      bool
-	Percent      float32
 	Code         int
 	ResponseTime float64
 }
@@ -38,17 +44,38 @@ type HistoryGroup struct {
 	Logs   []History
 }
 
-func GetHistory(r *http.Request, siteID int64) (loggroups []HistoryGroup, err error) {
-	c := appengine.NewContext(r)
-	q := datastore.NewQuery("history").Filter("SiteID =", siteID).Order("-Checked")
-	logentries := make([]History, 0)
-	for t := q.Run(c); ; {
-		var x History
-		_, err := t.Next(&x)
-		if err == datastore.Done || err != nil {
-			break
+func GetHistory(siteID int) (loggroups []HistoryGroup, err error) {
+
+	sel, err := database.Db.Prepare(getSiteHistoryStmt)
+	if err != nil {
+		return loggroups, err
+	}
+
+	rows, res, err := sel.Exec()
+	if database.MysqlError(err) {
+		return loggroups, err
+	}
+
+	id := res.Map("id")
+	sID := res.Map("siteID")
+	checked := res.Map("checked")
+	status := res.Map("status")
+	emailed := res.Map("emailed")
+	code := res.Map("code")
+	responseTime := res.Map("responseTime")
+
+	var logs []History
+	for _, row := range rows {
+		history := History{
+			ID:           row.Int(id),
+			SiteID:       row.Str(sID),
+			Checked:      row.Time(checked),
+			Status:       row.Str(status),
+			Emailed:      row.Bool(emailed),
+			Code:         row.Bool(code),
+			ResponseTime: row.Int(responseTime),
 		}
-		logentries = append(logentries, x)
+		logs = append(logs, history)
 	}
 
 	var group HistoryGroup
@@ -94,45 +121,111 @@ func GetHistory(r *http.Request, siteID int64) (loggroups []HistoryGroup, err er
 	return loggroups, err
 }
 
-func GetStatus(r *http.Request, siteID int64) (status History, err error) {
-	c := appengine.NewContext(r)
-	q := datastore.NewQuery("history").Filter("SiteID =", siteID).Order("-Checked").Limit(1)
-	for t := q.Run(c); ; {
-		_, err := t.Next(&status)
-		if err == datastore.Done || err != nil {
-			break
+func GetStatus(r *http.Request, siteID int64) (history History, err error) {
+	sel, err := database.Db.Prepare(getSiteHistoryStmt)
+	if err != nil {
+		return history, err
+	}
+
+	row, res, err := sel.ExecFirst()
+	if database.MysqlError(err) {
+		return history, err
+	}
+
+	id := res.Map("id")
+	sID := res.Map("siteID")
+	checked := res.Map("checked")
+	status := res.Map("status")
+	emailed := res.Map("emailed")
+	code := res.Map("code")
+	responseTime := res.Map("responseTime")
+
+	if err != nil { // Must be something wrong with the db, lets bail
+		return err
+	} else if row != nil { // populate history object
+		history = History{
+			ID:           row.Int(id),
+			SiteID:       row.Str(sID),
+			Checked:      row.Time(checked),
+			Status:       row.Str(status),
+			Emailed:      row.Bool(emailed),
+			Code:         row.Bool(code),
+			ResponseTime: row.Int(responseTime),
 		}
 	}
-	return status, err
+	return history, err
 }
 
-func GetLastEmail(r *http.Request, siteID int64) (logentry History, err error) {
-	c := appengine.NewContext(r)
-	q := datastore.NewQuery("history").Filter("SiteID =", siteID).Filter("Emailed =", true).Order("-Checked").Limit(1)
-	for t := q.Run(c); ; {
-		_, err := t.Next(&logentry)
-		if err == datastore.Done || err != nil {
-			break
+func GetLastEmail(siteID int) (logentry History, err error) {
+	sel, err := database.Db.Prepare(getLastEmailStmt)
+	if err != nil {
+		return logentry, err
+	}
+
+	params := struct {
+		SiteID int
+	}{}
+
+	params.SiteID = &siteID
+
+	sel.Bind(&params)
+
+	row, res, err := sel.ExecFirst()
+	if database.MysqlError(err) {
+		return logentry, err
+	}
+
+	id := res.Map("id")
+	sID := res.Map("siteID")
+	checked := res.Map("checked")
+	status := res.Map("status")
+	emailed := res.Map("emailed")
+	code := res.Map("code")
+	responseTime := res.Map("responseTime")
+
+	if err != nil { // Must be something wrong with the db, lets bail
+		return err
+	} else if row != nil { // populate history object
+		logentry = History{
+			ID:           row.Int(id),
+			SiteID:       row.Str(sID),
+			Checked:      row.Time(checked),
+			Status:       row.Str(status),
+			Emailed:      row.Bool(emailed),
+			Code:         row.Bool(code),
+			ResponseTime: row.Int(responseTime),
 		}
 	}
-	return
+	return logentry, err
 }
 
-func Uptime(r *http.Request, siteID int64, status string) (uptime float32) {
-	c := appengine.NewContext(r)
-	q := datastore.NewQuery("history").Filter("SiteID =", siteID)
-	qUp := datastore.NewQuery("history").Filter("SiteID =", siteID).Filter("Status =", "up")
-	total, _ := q.Count(c)
-	uptotal, _ := qUp.Count(c)
-
-	// Take into account current log entry
-	total += 1
-	if status == "up" {
-		uptotal += 1
+func GetUptime(siteID int) (uptime float32) {
+	uptime = 0
+	sel, err := database.Db.Prepare(getSiteUptimeStmt)
+	if err != nil {
+		return uptime, err
 	}
+
+	params := struct {
+		ID1 int
+		ID2 int
+	}{}
+
+	params.ID1 = &siteID
+	params.ID2 = &siteID
+
+	sel.Bind(&params)
+
+	row, res, err := sel.ExecFirst()
+	if database.MysqlError(err) {
+		return uptime, err
+	}
+
+	up := row.Int(res.Map("upcount"))
+	total := row.Int(res.Map("total"))
 
 	// Run uptime calculation
-	uptime = (float32(uptotal) / float32(total)) * 100.0
+	uptime = (float32(up) / float32(total)) * 100.0
 	// Check for errors
 	if math.IsNaN(float64(uptime)) {
 		uptime = 0
@@ -140,43 +233,69 @@ func Uptime(r *http.Request, siteID int64, status string) (uptime float32) {
 	return uptime
 }
 
-func Log(r *http.Request, siteID int64, checked time.Time, status string, emailed bool, code int, resptime float64) (logentry History) {
+func Log(siteID int, checked time.Time, status string, emailed bool, code int, resptime float64) (logentry History) {
 	logentry = History{
 		SiteID:       siteID,
 		Checked:      checked,
 		Status:       status,
 		Emailed:      emailed,
-		Percent:      Uptime(r, siteID, status),
 		Code:         code,
 		ResponseTime: resptime,
 	}
 	return
 }
 
-func SaveLogs(r *http.Request, logs map[int64]History) {
-	c := appengine.NewContext(r)
-	toPut := make([]History, 0)
-	keys := make([]*datastore.Key, 0)
-	for siteID, logentry := range logs {
-		parentKey := datastore.NewKey(c, "website", "", siteID, nil)
-		newKey := datastore.NewIncompleteKey(c, "history", parentKey)
-		keys = append(keys, newKey)
-		toPut = append(toPut, logentry)
-	}
-	_, err := datastore.PutMulti(c, keys, toPut)
-	if err != nil {
-		log.Println(err)
+func SaveLogs(logs []History) {
+	c := make(chan int)
+	for _, logentry := range logs {
+		go func(log History, ch chan int) {
+			log.Save()
+			ch <- 1
+		}(logentry, c)
 	}
 }
 
-func ClearOld(r *http.Request, siteID int64, days int) {
-	c := appengine.NewContext(r)
-	//parentKey := datastore.NewKey(c, "website", "", siteID, nil)
-	deleteBefore := time.Now().AddDate(0, 0, -days)
-	q := datastore.NewQuery("history").Filter("SiteID =", siteID).Filter("Checked <", deleteBefore).KeysOnly()
-	keys, err := q.GetAll(c, nil)
-	err = datastore.DeleteMulti(c, keys)
+func (entry *History) Save() {
+	ins, err := database.Db.Prepare(insertLogStmt)
 	if err != nil {
-		log.Println(err)
+		return success, err
+	}
+
+	params := struct {
+		SiteID       int
+		Status       string
+		Emailed      bool
+		Code         int
+		ResponseTime float64
+	}{}
+
+	params.SiteID = entry.SiteID
+	params.Status = entry.Status
+	params.Emailed = entry.Emailed
+	params.Code = entry.Code
+	params.ResponseTime = entry.ResponseTime
+
+	ins.Bind(&params)
+	_, err = ins.Run()
+}
+
+func ClearOld(siteID int, days int) {
+	del, err := database.Db.Prepare(clearOldLogsStmt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	deleteBefore := time.Now().AddDate(0, 0, -days)
+	params := struct {
+		SiteID  int
+		Checked time
+	}{}
+
+	params.SiteID = siteID
+	params.Checked = deleteBefore
+
+	del.Bind(&params)
+	_, err = ins.Run()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
