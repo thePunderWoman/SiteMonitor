@@ -298,7 +298,7 @@ func Settings(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	go func() {
-		settings, err = serversettings.Get(r)
+		settings, err = serversettings.Get()
 		settingChan <- 1
 	}()
 

@@ -27,7 +27,7 @@ type Setting struct {
 	Port     int
 }
 
-func (s Setting) Get(r *http.Request) (setting *Setting, err error) {
+func (s Setting) Get() (setting *Setting, err error) {
 	qry, err := database.Db.Prepare(getSettingsStmt)
 	if err != nil {
 		return setting, err
@@ -99,13 +99,50 @@ func (s Setting) Save(r *http.Request) (err error) {
 			return err
 		}
 
-		ins.Bind(&server, &email, &SSL, &username, &password, &port)
+		params := struct {
+			Server   string
+			Email    string
+			SSL      bool
+			Username string
+			Password string
+			Port     int
+		}{}
+
+		params.Server = &server
+		params.Email = &email
+		params.SSL = &SSL
+		params.Username = &username
+		params.Password = &password
+		params.Port = &port
+
+		ins.Bind(&params)
+
 		_, err = ins.Run()
 	} else {
 		// check if there's a row already
 		upd, err := database.Db.Prepare(updateSettingsStmt)
-		upd.Bind(&server, &email, &SSL, &username, &password, &port, &settingID)
-		_, err = ins.Run()
+
+		params := struct {
+			Server   string
+			Email    string
+			SSL      bool
+			Username string
+			Password string
+			Port     int
+			ID       int
+		}{}
+
+		params.Server = &server
+		params.Email = &email
+		params.SSL = &SSL
+		params.Username = &username
+		params.Password = &password
+		params.Port = &port
+		params.ID = settingID
+
+		upd.Bind(&params)
+
+		_, err = upd.Run()
 	}
 
 	return err
