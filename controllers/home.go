@@ -45,6 +45,9 @@ func Index(w http.ResponseWriter, r *http.Request) {
 				}
 				return domain
 			},
+			"hasSites": func(sites []models.Website) bool {
+				return len(sites) > 0
+			},
 		}
 		tmplChan <- 1
 	}()

@@ -1,6 +1,6 @@
 {{define "content"}}
 	<h3>Status of CURT Services</h3>
-	{{with .Sites}}
+	{{if hasSites .Sites}}
 		<table class="table">
 			<thead>
 				<tr>
@@ -12,18 +12,20 @@
 				</tr>
 			</thead>
 			<tbody>
-				{{range .}}
+				{{range .Sites}}
 					{{if .Public}}
 						<tr>
 							<td><span class="status {{.Status.Status}}" title="{{.Status.Status}}"></span></td>
 							<td><a href="{{getDomain .URL}}" target="_blank">{{.Name}}</a></td>
 							<td>{{getDomain .URL}}</td>
 							<td>{{if not .Status.Checked.IsZero}}{{formatDate .Status.Checked}}{{else}}Never{{end}}</td>
-							<td>{{formatDecimal .Status.Percent}} ({{.LogDays}} days)</td>
+							<td>{{formatDecimal .Uptime}} ({{.LogDays}} days)</td>
 						</tr>
 					{{end}}
 				{{end}}
 			</tbody>
 		</table>
+	{{else}}
+		<p>No Sites are currently being monitored</p>
 	{{end}}
 {{end}}

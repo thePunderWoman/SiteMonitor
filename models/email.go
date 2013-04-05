@@ -58,7 +58,6 @@ func Send(settings Settings, tos []string, subject string, body string, html boo
 		settings.Password,
 		settings.Server,
 	)
-
 	// Connect to the server, authenticate, set the sender and recipient,
 	// and send the email all in one step.
 	err := smtp.SendMail(

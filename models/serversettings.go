@@ -1,8 +1,8 @@
 package models
 
 import (
-	//"log"
 	"../helpers/database"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -13,8 +13,8 @@ var (
 
 	getSettingsIDStmt = `select id from Setting limit 1`
 
-	insertSettingsStmt = `insert into Setting (server,email,SSL,username,password,port) VALUES (?,?,?,?,?,?)`
-	updateSettingsStmt = `update Setting set server = ?, email = ?, SSL = ?, username = ?, password = ?, port = ? WHERE id = ?`
+	insertSettingsStmt = `insert into Setting (server,email,requireSSL,username,password,port) VALUES (?,?,?,?,?,?)`
+	updateSettingsStmt = `update Setting set server = ?, email = ?, requireSSL = ?, username = ?, password = ?, port = ? WHERE id = ?`
 )
 
 type Setting struct {
@@ -43,7 +43,7 @@ func (s Setting) Get() (setting Setting, err error) {
 	ID := res.Map("id")
 	server := res.Map("server")
 	email := res.Map("email")
-	ssl := res.Map("SSL")
+	ssl := res.Map("requireSSL")
 	username := res.Map("username")
 	password := res.Map("password")
 	port := res.Map("port")
@@ -68,15 +68,15 @@ func (s Setting) Save(r *http.Request) (err error) {
 	if err != nil {
 		return err
 	}
-
+	settingID := 0
 	row, res, err := qry.ExecFirst()
 	if database.MysqlError(err) {
 		return err
-	} else if row == nil {
-		return nil
 	}
 
-	settingID := row.Int(res.Map("id"))
+	if row != nil {
+		settingID = row.Int(res.Map("id"))
+	}
 
 	server := r.FormValue("server")
 	email := r.FormValue("email")
@@ -117,6 +117,9 @@ func (s Setting) Save(r *http.Request) (err error) {
 		ins.Bind(&params)
 
 		_, _, err = ins.Exec()
+		if err != nil {
+			log.Println(err)
+		}
 	} else {
 		// check if there's a row already
 		upd, err := database.Db.Prepare(updateSettingsStmt)

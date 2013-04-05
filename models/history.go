@@ -11,9 +11,7 @@ import (
 var (
 	UTC, _ = time.LoadLocation("UTC")
 
-	getSiteHistoryStmt = `select * from History
-						where siteID = ?
-						order by checked desc`
+	getSiteHistoryStmt = "select * from History where siteID = ? order by checked desc"
 
 	getSiteHistoryUpCountStmt = `select COUNT(*) from History 
 								where siteID = ? AND status = 'up'`
@@ -24,7 +22,7 @@ var (
 								(select COUNT(*) FROM History WHERE siteID = ?) AS total`
 
 	getLastEmailStmt = `select * from History WHERE siteID = ? and emailed = 1 order by checked desc limit 1`
-	insertLogStmt    = `insert into History (siteID,checked,status,emailed,code,responseTime) VALUES (?,CURRENT_TIMESTAMP,?,?,?,?)`
+	insertLogStmt    = `insert into History (siteID,checked,status,emailed,code,responseTime) VALUES (?,UTC_TIMESTAMP(),?,?,?,?)`
 	clearOldLogsStmt = `delete from History WHERE siteID = ? and checked < ?`
 )
 
@@ -51,13 +49,7 @@ func GetHistory(siteID int) (loggroups []HistoryGroup, err error) {
 	if err != nil {
 		return loggroups, err
 	}
-
-	params := struct {
-		SiteID int
-	}{}
-
-	params.SiteID = siteID
-	sel.Bind(&params)
+	sel.Bind(siteID)
 
 	rows, res, err := sel.Exec()
 	if database.MysqlError(err) {
@@ -134,6 +126,8 @@ func GetStatus(siteID int) (history History, err error) {
 	if err != nil {
 		return history, err
 	}
+
+	sel.Bind(siteID)
 
 	row, res, err := sel.ExecFirst()
 	if database.MysqlError(err) {

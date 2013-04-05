@@ -25,14 +25,14 @@ type Website struct {
 }
 
 var (
-	getAllWebsitesStmt           = `select * from Website order by name`
-	getAllMonitoringWebsitesStmt = `select * from Website where monitoring = 1`
-	getWebsiteByIDStmt           = `select * from Website where id = ?`
-	deleteWebsiteByIDStmt        = `delete from Website where id = ?`
-	deleteHistoryBySiteStmt      = `delete from History where siteID = ?`
-	deleteNotifiersBySiteStmt    = `delete from Notify where siteID = ?`
-	insertWebsiteStmt            = `insert into Website (name,URL,interval,monitoring,public,emailInterval,logDays) VALUES (?,?,?,?,?,?,?)`
-	updateWebsiteStmt            = `update Website set name = ?, URL = ?, interval = ?, monitoring = ?, public = ?, emailInterval = ?, logDays = ? WHERE id = ?`
+	getAllWebsitesStmt           = "select * from Website order by name"
+	getAllMonitoringWebsitesStmt = "select * from Website where monitoring = 1"
+	getWebsiteByIDStmt           = "select * from Website where id = ?"
+	deleteWebsiteByIDStmt        = "delete from Website where id = ?"
+	deleteHistoryBySiteStmt      = "delete from History where siteID = ?"
+	deleteNotifiersBySiteStmt    = "delete from Notify where siteID = ?"
+	insertWebsiteStmt            = "INSERT INTO Website (name, URL, checkinterval, monitoring, public, emailInterval, logDays) VALUES (?,?,?,?,?,?,?)"
+	updateWebsiteStmt            = "update Website set name = ?, URL = ?, checkinterval = ?, monitoring = ?, public = ?, emailInterval = ?, logDays = ? WHERE id = ?"
 )
 
 func (website Website) IntervalMins() int {
@@ -49,31 +49,32 @@ func (website Website) GetAll() (sites []Website, err error) {
 	if database.MysqlError(err) {
 		return sites, err
 	}
+	if len(rows) > 0 {
+		id := res.Map("id")
+		name := res.Map("name")
+		urlstr := res.Map("URL")
+		interval := res.Map("checkInterval")
+		monitoring := res.Map("monitoring")
+		public := res.Map("public")
+		emailInverval := res.Map("emailInterval")
+		logDays := res.Map("logDays")
 
-	id := res.Map("id")
-	name := res.Map("name")
-	url := res.Map("URL")
-	interval := res.Map("interval")
-	monitoring := res.Map("monitoring")
-	public := res.Map("public")
-	emailInverval := res.Map("emailInterval")
-	logDays := res.Map("logDays")
-
-	for _, row := range rows {
-		status, _ := GetStatus(row.Int(id))
-		site := Website{
-			ID:            row.Int(id),
-			Name:          row.Str(name),
-			URL:           row.Str(url),
-			Interval:      row.Int(interval),
-			Monitoring:    row.Bool(monitoring),
-			Public:        row.Bool(public),
-			EmailInterval: row.Int(emailInverval),
-			LogDays:       row.Int(logDays),
-			Uptime:        GetUptime(row.Int(id)),
-			Status:        status,
+		for _, row := range rows {
+			status, _ := GetStatus(row.Int(id))
+			site := Website{
+				ID:            row.Int(id),
+				Name:          row.Str(name),
+				URL:           row.Str(urlstr),
+				Interval:      row.Int(interval),
+				Monitoring:    row.Bool(monitoring),
+				Public:        row.Bool(public),
+				EmailInterval: row.Int(emailInverval),
+				LogDays:       row.Int(logDays),
+				Uptime:        GetUptime(row.Int(id)),
+				Status:        status,
+			}
+			sites = append(sites, site)
 		}
-		sites = append(sites, site)
 	}
 
 	return sites, err
@@ -146,10 +147,10 @@ func (website Website) Get(id int) (site Website, err error) {
 	}
 
 	params := struct {
-		id int
+		ID int
 	}{}
 
-	params.id = id
+	params.ID = id
 
 	sel.Bind(&params)
 
@@ -161,7 +162,7 @@ func (website Website) Get(id int) (site Website, err error) {
 	idval := res.Map("id")
 	name := res.Map("name")
 	url := res.Map("URL")
-	interval := res.Map("interval")
+	interval := res.Map("checkInterval")
 	monitoring := res.Map("monitoring")
 	public := res.Map("public")
 	emailInterval := res.Map("emailInterval")
@@ -277,6 +278,7 @@ func (website Website) Save(r *http.Request) (err error) {
 		params.LogDays = logdays
 
 		ins, err := database.Db.Prepare(insertWebsiteStmt)
+
 		if err != nil {
 			return err
 		}

@@ -5,7 +5,6 @@ import (
 	"../../models"
 	"fmt"
 	"html/template"
-	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -39,6 +38,9 @@ func Index(w http.ResponseWriter, r *http.Request) {
 					return fmt.Sprintf("%.2f", dc) + "%"
 				}
 				return "-"
+			},
+			"hasSites": func(sites []models.Website) bool {
+				return len(sites) > 0
 			},
 		}
 		tmplChan <- 1
@@ -179,9 +181,9 @@ func Save(w http.ResponseWriter, r *http.Request) {
 	<-siteChan
 	if err != nil {
 		if r.FormValue("siteID") == "" {
-			http.Redirect(w, r, "/add/"+url.QueryEscape("There was a problem saving to the datastore: "+err.Error()), http.StatusFound)
+			http.Redirect(w, r, "/add/"+url.QueryEscape("There was a problem saving to the database: "+err.Error()), http.StatusFound)
 		} else {
-			http.Redirect(w, r, "/edit/"+r.FormValue("siteID")+"/"+url.QueryEscape("There was a problem saving to the datastore: "+err.Error()), http.StatusFound)
+			http.Redirect(w, r, "/edit/"+r.FormValue("siteID")+"/"+url.QueryEscape("There was a problem saving to the database: "+err.Error()), http.StatusFound)
 		}
 	} else {
 		http.Redirect(w, r, "/admin", http.StatusFound)
@@ -240,7 +242,6 @@ func TestSend(w http.ResponseWriter, r *http.Request) {
 	n := models.Notify{}
 	notifier, err := n.Get(r)
 	if err == nil {
-		log.Println(notifier)
 		notifier.Notify("Test", "http://www.test.com", time.Now(), "up", 200, 12)
 	}
 	fmt.Fprint(w, "Sending Email")
@@ -258,7 +259,7 @@ func AddNotifier(w http.ResponseWriter, r *http.Request) {
 	<-saveChan
 	parentID := r.FormValue("parentID")
 	if err != nil {
-		http.Redirect(w, r, "/emails/"+parentID+"/"+url.QueryEscape("There was a problem saving to the datastore: "+err.Error()), http.StatusFound)
+		http.Redirect(w, r, "/emails/"+parentID+"/"+url.QueryEscape("There was a problem saving to the database: "+err.Error()), http.StatusFound)
 	} else {
 		http.Redirect(w, r, "/emails/"+parentID, http.StatusFound)
 	}
@@ -332,7 +333,7 @@ func SaveSettings(w http.ResponseWriter, r *http.Request) {
 	}()
 	<-settingChan
 	if err != nil {
-		http.Redirect(w, r, "/settings/"+url.QueryEscape("There was a problem saving to the datastore: "+err.Error()), http.StatusFound)
+		http.Redirect(w, r, "/settings/"+url.QueryEscape("There was a problem saving to the database: "+err.Error()), http.StatusFound)
 	} else {
 		http.Redirect(w, r, "/settings", http.StatusFound)
 	}

@@ -24,12 +24,13 @@
 				</li>
 			</ul>
 			<ul class="nav pull-right">
+				<li><a href="/settings">Settings</a></li>
 				<li class="divider-vertical"></li>
 				<li><a href="/auth/out">Logout</a></li>
 			</ul>
 		</div>
 	</div>
-	{{with .Sites}}
+	{{if hasSites .Sites}}
 		<table class="table table-bordered table-condensed table-striped table-hover sortable">
 			<thead>
 				<tr>
@@ -46,7 +47,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{{range .}}
+				{{range .Sites}}
 					<tr>
 						<td><a href="{{.URL}}" target="_blank">{{.Name}}</a></td>
 						<td>{{.Interval}} Mins</td>
@@ -66,7 +67,7 @@
 							{{end}}
 						</td>
 						<td class="center"><span class="status {{.Status.Status}}" title="{{.Status.Status}}"></span></td>
-						<td>{{formatDecimal .Status.Percent}}</td>
+						<td>{{formatDecimal .Uptime}}</td>
 						<td>
 							<div class="btn-group">
 								<a href="#" class="btn dropdown-toggle" data-toggle="dropdown">

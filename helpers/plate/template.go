@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 )
 
 type Template struct {
@@ -35,7 +36,18 @@ func (t Template) SinglePage(file_path string) (err error) {
 		t.Template = file_path
 	}
 
+	if t.FuncMap == nil {
+		t.FuncMap = template.FuncMap{}
+	}
+	t.FuncMap["CurrentYear"] = func() int {
+		return time.Now().Year()
+	}
+
 	tmpl, err := template.New(t.Template).Funcs(t.FuncMap).ParseFiles(t.Template)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	err = tmpl.Execute(t.Writer, t.Bag)
 
 	return
@@ -48,8 +60,18 @@ func (t Template) DisplayTemplate() (err error) {
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
 	}
+	if t.FuncMap == nil {
+		t.FuncMap = template.FuncMap{}
+	}
+	t.FuncMap["CurrentYear"] = func() int {
+		return time.Now().Year()
+	}
 
 	templ, err := template.New(t.Layout).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 
 	err = templ.Execute(t.Writer, t.Bag)
 
@@ -63,8 +85,18 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
 	}
+	if t.FuncMap == nil {
+		t.FuncMap = template.FuncMap{}
+	}
+	t.FuncMap["CurrentYear"] = func() int {
+		return time.Now().Year()
+	}
 
 	templ, err := template.New(t.Layout).Funcs(t.FuncMap).ParseFiles(t.Layout)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	for _, filename := range templates {
 		templ.ParseFiles(filename)
 	}
