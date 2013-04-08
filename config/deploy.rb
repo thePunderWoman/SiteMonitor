@@ -21,9 +21,6 @@ set :normalize_asset_timestamps, false
 
 before :deploy, "db:configure"
 after :deploy, "deploy:goget", "deploy:compile", "deploy:stop", "deploy:restart"
-#after "deploy:goget", "deploy:compile"
-#after "deploy:compile", "deploy:stop"
-#after "deploy:stop", "deploy:restart"
 
 namespace :db do
   desc "set database Connection String"
@@ -38,8 +35,8 @@ namespace :db do
       const (
         db_proto = "tcp"
         db_addr  = "curtsql.cloudapp.net:3306"
-        db_user  = "{{database_username}}"
-        db_pass  = "{{database_password}}"
+        db_user  = "#{database_username}"
+        db_pass  = "#{database_password}"
         db_name  = "SiteMonitor"
       )
     EOF
