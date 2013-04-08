@@ -56,7 +56,7 @@ namespace :deploy do
       kill_processes_matching "site-monitor"
   end
   task :restart do
-  	restart_cmd = "#{current_release}/site-monitor -http=127.0.0.1:8090 -useenv=true"
+  	restart_cmd = "#{current_release}/site-monitor -http=127.0.0.1:8090"
   	run "nohup sh -c '#{restart_cmd} &' > nohup.out"
   end
 end
