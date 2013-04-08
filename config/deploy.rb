@@ -26,7 +26,7 @@ namespace :db do
   task :configure do
     set(:database_username) { Capistrano::CLI.ui.ask("Database Username:") }
   
-    set(:database_password) { Capistrano::CLI.ui.ask("Database Password:") }
+    set(:database_password) { Capistrano::CLI.password_prompt("Database Password:") }
 
     db_config = <<-EOF
       package database
