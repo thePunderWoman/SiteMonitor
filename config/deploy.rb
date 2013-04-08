@@ -19,9 +19,9 @@ set :use_sudo, false
 set :sudo_prompt, ""
 set :normalize_asset_timestamps, false
 
+before "deploy", "db:configure"
 after "deploy", "deploy:goget"
-after "deploy:goget", "db:configure"
-after "db:configure", "deploy:compile"
+after "deploy:goget", "deploy:compile"
 after "deploy:compile", "deploy:stop"
 after "deploy:stop", "deploy:restart"
 
@@ -46,6 +46,7 @@ namespace :db do
         db_name  = "SiteMonitor"
       )
     EOF
+    run "mkdir -p #{deploy_to}/helpers/database"
     put db_config, "#{deploy_to}/helpers/database/ConnectionString.go"
   end
 end
