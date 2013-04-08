@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -43,7 +44,13 @@ func (t Template) SinglePage(file_path string) (err error) {
 		return time.Now().Year()
 	}
 
-	tmpl, err := template.New(t.Template).Funcs(t.FuncMap).ParseFiles(t.Template)
+	templateName := t.Template
+	if strings.Index(templateName, "/") > -1 {
+		tparts := strings.Split(templateName, "/")
+		templateName = tparts[len(tparts)-1]
+	}
+
+	tmpl, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Template)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -55,7 +62,7 @@ func (t Template) SinglePage(file_path string) (err error) {
 
 func (t Template) DisplayTemplate() (err error) {
 	if t.Layout == "" {
-		t.Layout = "layout.html"
+		t.Layout = "layouts/layout.html"
 	}
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
@@ -67,20 +74,26 @@ func (t Template) DisplayTemplate() (err error) {
 		return time.Now().Year()
 	}
 
-	templ, err := template.New(t.Layout).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
+	templateName := t.Layout
+	if strings.Index(templateName, "/") > -1 {
+		tparts := strings.Split(templateName, "/")
+		templateName = tparts[len(tparts)-1]
+	}
+
+	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout, t.Template)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-
 	err = templ.Execute(t.Writer, t.Bag)
+	log.Println(err)
 
 	return
 }
 
 func (t Template) DisplayMultiple(templates []string) (err error) {
 	if t.Layout == "" {
-		t.Layout = "layout.html"
+		t.Layout = "layouts/layout.html"
 	}
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
@@ -92,7 +105,13 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 		return time.Now().Year()
 	}
 
-	templ, err := template.New(t.Layout).Funcs(t.FuncMap).ParseFiles(t.Layout)
+	templateName := t.Layout
+	if strings.Index(templateName, "/") > -1 {
+		tparts := strings.Split(templateName, "/")
+		templateName = tparts[len(tparts)-1]
+	}
+
+	templ, err := template.New(templateName).Funcs(t.FuncMap).ParseFiles(t.Layout)
 	if err != nil {
 		log.Println(err)
 		return err
