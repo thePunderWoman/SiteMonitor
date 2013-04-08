@@ -1,6 +1,7 @@
 package database
 
 import (
+	"../ConnectionString"
 	"../mymysql/autorc"
 	// "github.com/ziutek/mymysql/mysql"
 	_ "../mymysql/thrsafe"
@@ -10,7 +11,7 @@ import (
 
 var (
 	// MySQL Connection Handler
-	Db = autorc.New(db_proto, "", db_addr, db_user, db_pass, db_name)
+	Db = autorc.New(ConnectionString.Db_proto, "", ConnectionString.Db_addr, ConnectionString.Db_user, ConnectionString.Db_pass, ConnectionString.Db_name)
 
 	//  Prepared statements would go here
 	//  stmt *autorc.Stmt

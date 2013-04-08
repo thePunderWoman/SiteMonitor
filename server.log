@@ -1,0 +1,3 @@
+2013/04/08 10:22:00 [::1]:61160 - - [2013-04-08 10:22:00.109272 -0600 MDT] "GET / HTTP/1.1" 0 1002 "" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.43 Safari/537.31"
+2013/04/08 10:22:00 [::1]:61160 - - [2013-04-08 10:22:00.190455 -0600 MDT] "GET /css/style.css HTTP/1.1" 304 10 "http://localhost:8080/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.43 Safari/537.31"
+2013/04/08 10:22:00 [::1]:61160 - - [2013-04-08 10:22:00.240322 -0600 MDT] "GET /js/main.js HTTP/1.1" 304 10 "http://localhost:8080/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.43 Safari/537.31"
