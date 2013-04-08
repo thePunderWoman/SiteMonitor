@@ -19,22 +19,19 @@ set :use_sudo, false
 set :sudo_prompt, ""
 set :normalize_asset_timestamps, false
 
-before "deploy", "db:configure"
-after "deploy", "deploy:goget"
-after "deploy:goget", "deploy:compile"
-after "deploy:compile", "deploy:stop"
-after "deploy:stop", "deploy:restart"
+before :deploy, "db:configure"
+after :deploy, "deploy:goget", "deploy:compile", "deploy:stop", "deploy:restart"
+#after "deploy:goget", "deploy:compile"
+#after "deploy:compile", "deploy:stop"
+#after "deploy:stop", "deploy:restart"
 
 namespace :db do
   desc "set database Connection String"
   task :configure do
-    set :database_username do
-      Capistrano::CLI.password_prompt "Database Username:"
-    end
+    set(:database_username) { Capistrano::CLI.ui.ask("Database Username:") }
+  
+    set(:database_password) { Capistrano::CLI.ui.ask("Database Password:") }
 
-    set :database_password do
-      Capistrano::CLI.password_prompt "Database Password:"
-    end
     db_config = <<-EOF
       package database
 
