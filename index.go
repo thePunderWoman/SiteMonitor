@@ -24,6 +24,7 @@ const (
 )
 
 func main() {
+	log.Println("Initializing application")
 	flag.Parse()
 	server := plate.NewServer("doughboy")
 	plate.DefaultAuthHandler = auth.AuthHandler
