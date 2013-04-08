@@ -40,8 +40,8 @@ namespace :db do
         db_name  = "SiteMonitor"
       )
     EOF
-    run "mkdir -p #{deploy_to}/helpers/database"
-    put db_config, "#{deploy_to}/helpers/database/ConnectionString.go"
+    run "mkdir -p #{deploy_to}/current/helpers/database"
+    put db_config, "#{deploy_to}/current/helpers/database/ConnectionString.go"
   end
 end
 namespace :deploy do
