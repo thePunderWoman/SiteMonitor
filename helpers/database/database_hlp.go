@@ -11,9 +11,6 @@ import (
 var (
 	// MySQL Connection Handler
 	Db = autorc.New(db_proto, "", db_addr, db_user, db_pass, db_name)
-
-	//  Prepared statements would go here
-	//  stmt *autorc.Stmt
 )
 
 func MysqlError(err error) (ret bool) {
