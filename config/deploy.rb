@@ -2,17 +2,17 @@ default_run_options[:pty] = true
 ssh_options[:forward_agent] = true
 
 
-set :application, "GoAPI"
+set :application, "SiteMonitor"
 set :repository,  "git@github.com:curt-labs/SiteMonitor.git"
 
 set :scm, :git
 set :scm_passphrase, ""
-set :user, "jjaniuk"
+set :user, "deployer"
 
 role :web, "curt-api-server1.cloudapp.net", "curt-api-server2.cloudapp.net"
 role :app, "curt-api-server1.cloudapp.net", "curt-api-server2.cloudapp.net"
 
-set :deploy_to, "/home/jjaniuk/#{application}"
+set :deploy_to, "/home/deployer/#{application}"
 set :deploy_via, :remote_cache
 
 set :use_sudo, false
