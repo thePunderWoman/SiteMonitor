@@ -19,8 +19,7 @@ set :use_sudo, false
 set :sudo_prompt, ""
 set :normalize_asset_timestamps, false
 
-before :deploy, "db:configure"
-after :deploy, "deploy:goget", "deploy:compile", "deploy:stop", "deploy:restart"
+after :deploy, "deploy:goget", "db:configure", "deploy:compile", "deploy:stop", "deploy:restart"
 
 namespace :db do
   desc "set database Connection String"
