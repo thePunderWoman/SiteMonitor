@@ -35,7 +35,7 @@ func (t Template) SinglePage(file_path string) (err error) {
 		t.Bag = make(map[string]interface{})
 	}
 	if len(file_path) != 0 {
-		t.Template = globals.GetGlobal("Filepath") + file_path
+		t.Template = globals.Filepath + file_path
 	}
 
 	if t.FuncMap == nil {
@@ -63,9 +63,9 @@ func (t Template) SinglePage(file_path string) (err error) {
 
 func (t Template) DisplayTemplate() (err error) {
 	if t.Layout == "" {
-		t.Layout = globals.GetGlobal("Filepath") + "layouts/layout.html"
+		t.Layout = globals.Filepath + "layouts/layout.html"
 	}
-	t.Template = globals.GetGlobal("Filepath") + t.Template
+	t.Template = globals.Filepath + t.Template
 
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
@@ -96,7 +96,7 @@ func (t Template) DisplayTemplate() (err error) {
 
 func (t Template) DisplayMultiple(templates []string) (err error) {
 	if t.Layout == "" {
-		t.Layout = globals.GetGlobal("Filepath") + "layouts/layout.html"
+		t.Layout = globals.Filepath + "layouts/layout.html"
 	}
 	if t.Bag == nil {
 		t.Bag = make(map[string]interface{})
@@ -120,7 +120,7 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 		return err
 	}
 	for _, filename := range templates {
-		templ.ParseFiles(globals.GetGlobal("Filepath") + filename)
+		templ.ParseFiles(globals.Filepath + filename)
 	}
 	err = templ.Execute(t.Writer, t.Bag)
 

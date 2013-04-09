@@ -4,13 +4,17 @@ import (
 	"flag"
 )
 
-func GetGlobal(k string) string {
-	var filePath string
-	flag.StringVar(&filePath, "path", "", "path to files")
+var (
+	Filepath   = GetGlobal("path")
+	ListenAddr = flag.String("http", ":8080", "http listen address")
+)
+
+func SetGlobals() {
 	flag.Parse()
-	switch k {
-	case "Filepath":
-		return filePath
-	}
-	return ""
+}
+
+func GetGlobal(k string) string {
+	var flagdata string
+	flag.StringVar(&flagdata, k, "", "path to files")
+	return flagdata
 }

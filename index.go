@@ -4,15 +4,13 @@ import (
 	"./controllers"
 	"./controllers/admin"
 	"./controllers/auth"
+	"./helpers/globals"
 	"./helpers/plate"
-	"flag"
 	"log"
 	"net/http"
 )
 
 var (
-	listenAddr = flag.String("http", ":8080", "http listen address")
-
 	CorsHandler = func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		return
@@ -25,7 +23,7 @@ const (
 
 func main() {
 	log.Println("Initializing application")
-	flag.Parse()
+	globals.SetGlobals()
 	server := plate.NewServer("doughboy")
 	plate.DefaultAuthHandler = auth.AuthHandler
 
@@ -67,7 +65,7 @@ func main() {
 
 	http.Handle("/", server)
 
-	log.Println("Server running on port " + *listenAddr)
+	log.Println("Server running on port " + *globals.ListenAddr)
 
-	log.Fatal(http.ListenAndServe(*listenAddr, nil))
+	log.Fatal(http.ListenAndServe(*globals.ListenAddr, nil))
 }
