@@ -4,10 +4,11 @@ import (
 	"../../helpers/plate"
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Customer struct {
@@ -19,7 +20,6 @@ type Customer struct {
 	Website   string
 	Phone     string
 	Fax       string
-	IsAdmin   int
 	Comments  string
 	IsActive  int
 	SuperUser int
@@ -28,9 +28,14 @@ type Customer struct {
 }
 
 func AuthHandler(w http.ResponseWriter, r *http.Request) bool {
-	session := plate.Session.Get(r)
-
-	userID, _ := session["user"].(int)
+	cook, err := r.Cookie("user")
+	userID := 0
+	if err == nil && cook != nil {
+		userID, err = strconv.Atoi(cook.Value)
+		if err != nil {
+			userID = 0
+		}
+	}
 	if userID == 0 {
 		http.Redirect(w, r, "/Auth", http.StatusFound)
 	}
@@ -60,26 +65,32 @@ func Index(w http.ResponseWriter, r *http.Request) {
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	session := plate.Session.Get(r)
-
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	cust, err := LoadUser(username, password, r, w)
 
 	if err != nil || cust == nil {
-		log.Println("hit error")
 		urlpath := "/auth/" + url.QueryEscape("Failed to log you into the system")
 		http.Redirect(w, r, urlpath, http.StatusFound)
 	} else {
-		session["user"] = cust.UserID
-		session["name"] = cust.Fname
+		cook := http.Cookie{
+			Name:    "user",
+			Value:   strconv.Itoa(cust.UserID),
+			Expires: time.Now().AddDate(0, 1, 0),
+		}
+		http.SetCookie(w, &cook)
 		http.Redirect(w, r, "/admin", http.StatusFound)
 	}
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-	session := plate.Session.Get(r)
-	delete(session, "user")
+	// expire cookie
+	cook, err := r.Cookie("user")
+
+	if err == nil {
+		cook.Expires = time.Now().AddDate(0, 0, -1)
+		http.SetCookie(w, cook)
+	}
 	http.Redirect(w, r, "/auth", http.StatusFound)
 }
 
@@ -96,12 +107,7 @@ func LoadUser(u string, p string, r *http.Request, w http.ResponseWriter) (c *Cu
 	values.Set("password", p)
 	values.Set("key", "8aee0620-412e-47fc-900a-947820ea1c1d")
 
-	// Encode post data and make request
-	b := strings.NewReader(values.Encode())
-	req, _ := http.NewRequest("POST", "https://api.curtmfg.com/user/getuser", b)
-
-	client := &http.Client{}
-	t, err := client.Do(req)
+	t, err := http.PostForm("https://api.curtmfg.com/user/getuser", values)
 
 	if err != nil {
 		return
@@ -117,7 +123,6 @@ func LoadUser(u string, p string, r *http.Request, w http.ResponseWriter) (c *Cu
 	// then unmarshal the json into our Customer struct
 	var buf bytes.Buffer
 	buf.ReadFrom(t.Body)
-
 	err = json.Unmarshal(buf.Bytes(), &c)
 	if err != nil {
 		//http.Error(w, err.Error(), http.StatusInternalServerError)

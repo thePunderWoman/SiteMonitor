@@ -15,6 +15,10 @@ var (
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		return
 	}
+	AuthHandler = func(w http.ResponseWriter, r *http.Request) {
+		auth.AuthHandler(w, r)
+		return
+	}
 )
 
 const (
@@ -22,10 +26,8 @@ const (
 )
 
 func main() {
-	log.Println("Initializing application")
 	globals.SetGlobals()
 	server := plate.NewServer("doughboy")
-	plate.DefaultAuthHandler = auth.AuthHandler
 
 	server.AddFilter(CorsHandler)
 
@@ -33,29 +35,29 @@ func main() {
 	server.Get("/auth", auth.Index)
 	server.Post("/auth", auth.Login)
 	server.Get("/auth/:error", auth.Index)
-	server.Get("/auth/out", auth.Logout)
+	server.Get("/logout", auth.Logout)
 
 	server.Get("/", controllers.Index)
 
 	//Admin Routes
-	server.Get("/Admin", admin.Index).Secure()
-	server.Get("/Add", admin.Add).Secure()
-	server.Get("/Add/:error", admin.Add).Secure()
-	server.Get("/Edit/:key", admin.Edit).Secure()
-	server.Get("/Edit/:key/:error", admin.Edit).Secure()
-	server.Post("/Save", admin.Save).Secure()
-	server.Post("/Delete", admin.Delete).Secure()
-	server.Post("/DeleteNotifier", admin.DeleteNotifier).Secure()
-	server.Post("/AddNotifier", admin.AddNotifier).Secure()
-	server.Get("/TestSend/:key", admin.TestSend).Secure()
-	server.Get("/Emails/:key", admin.GetNotifiers).Secure()
-	server.Get("/Emails/:key/:error", admin.GetNotifiers).Secure()
-	server.Get("/History/:key", admin.GetHistory).Secure()
+	server.Get("/Admin", admin.Index).AddFilter(AuthHandler)
+	server.Get("/Add", admin.Add).AddFilter(AuthHandler)
+	server.Get("/Add/:error", admin.Add).AddFilter(AuthHandler)
+	server.Get("/Edit/:key", admin.Edit).AddFilter(AuthHandler)
+	server.Get("/Edit/:key/:error", admin.Edit).AddFilter(AuthHandler)
+	server.Post("/Save", admin.Save).AddFilter(AuthHandler)
+	server.Post("/Delete", admin.Delete).AddFilter(AuthHandler)
+	server.Post("/DeleteNotifier", admin.DeleteNotifier).AddFilter(AuthHandler)
+	server.Post("/AddNotifier", admin.AddNotifier).AddFilter(AuthHandler)
+	server.Get("/TestSend/:key", admin.TestSend).AddFilter(AuthHandler)
+	server.Get("/Emails/:key", admin.GetNotifiers).AddFilter(AuthHandler)
+	server.Get("/Emails/:key/:error", admin.GetNotifiers).AddFilter(AuthHandler)
+	server.Get("/History/:key", admin.GetHistory).AddFilter(AuthHandler)
 
 	//Setting Routes
-	server.Get("/Settings", admin.Settings).Secure()
-	server.Get("/Settings/:error", admin.Settings).Secure()
-	server.Post("/Settings", admin.SaveSettings).Secure()
+	server.Get("/Settings", admin.Settings).AddFilter(AuthHandler)
+	server.Get("/Settings/:error", admin.Settings).AddFilter(AuthHandler)
+	server.Post("/Settings", admin.SaveSettings).AddFilter(AuthHandler)
 
 	//Cron Task
 	server.Get("/Check", admin.Check)

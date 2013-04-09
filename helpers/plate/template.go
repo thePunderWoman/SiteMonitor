@@ -89,7 +89,9 @@ func (t Template) DisplayTemplate() (err error) {
 		return err
 	}
 	err = templ.Execute(t.Writer, t.Bag)
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return
 }

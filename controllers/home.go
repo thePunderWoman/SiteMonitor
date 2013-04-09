@@ -14,7 +14,6 @@ import (
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	server := plate.NewServer()
-	log.Println("home: server created")
 
 	var err error
 	var tmpl plate.Template
@@ -62,7 +61,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	<-tmplChan
 	<-siteChan
-	log.Println("home: sites retreived")
 
 	if err != nil {
 		log.Println(err)
@@ -72,7 +70,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	tmpl.Bag["Sites"] = sites
 	tmpl.Template = "templates/index.html"
-	log.Println("home: displaying template")
 
 	tmpl.DisplayTemplate()
 }

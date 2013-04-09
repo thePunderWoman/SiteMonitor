@@ -363,21 +363,6 @@ func (this *responseWriter) WriteHeader(code int) {
 }
 
 // ---------------------------------------------------------------------------------
-// Authentication helper functions to enable user authentication
-
-type AuthHandler func(http.ResponseWriter, *http.Request) bool
-
-// DefaultAuthHandler will be applied to any route when the Secure() function
-// is invoked, as opposed to SecureFunc(), which accepts a custom AuthHandler.
-//
-// By default, the DefaultAuthHandler will deny all requests. This value
-// should be replaced with a custom AuthHandler implementation, as this
-// is just a dummy function.
-var DefaultAuthHandler = func(w http.ResponseWriter, r *http.Request) bool {
-	return false
-}
-
-// ---------------------------------------------------------------------------------
 // Below are helper functions to replace boilerplate
 // code that serializes resources and writes to the
 // http response.
