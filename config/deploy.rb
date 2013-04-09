@@ -52,7 +52,7 @@ namespace :deploy do
   	run "GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /usr/local/go/bin/go build -o #{deploy_to}/current/site-monitor #{deploy_to}/current/index.go"
   end
   task :own do
-    run "chown -R deployer:deployers #{deploy_to}"
+    run "sudo chown -R deployer:deployers #{deploy_to}"
   end
   task :start do ; end
   task :stop do 
