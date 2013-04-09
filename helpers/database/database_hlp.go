@@ -10,7 +10,7 @@ import (
 
 var (
 	// MySQL Connection Handler
-	Db = autorc.New(db_proto, "", db_addr, db_user, db_pass, db_name)
+	Db = autorc.New("tcp", "", "curtsql.cloudapp.net:3306", "sitemonitor", "S1teM0nitor", "SiteMonitor")
 )
 
 func MysqlError(err error) (ret bool) {

@@ -4,9 +4,13 @@ import (
 	"flag"
 )
 
-var (
-	Filepath = func() *string {
-		flag.Parse()
-		return flag.String("path", "", "path to files")
-	}()
-)
+func GetGlobal(k string) string {
+	var filePath string
+	flag.StringVar(&filePath, "path", "", "path to files")
+	flag.Parse()
+	switch k {
+	case "Filepath":
+		return filePath
+	}
+	return ""
+}
