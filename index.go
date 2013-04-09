@@ -61,7 +61,7 @@ func main() {
 	server.Get("/Check", admin.Check)
 	server.Get("/CleanLogs", admin.CleanLogs)
 
-	server.Static("/", "static")
+	server.Static("/", *globals.Filepath+"static")
 
 	http.Handle("/", server)
 

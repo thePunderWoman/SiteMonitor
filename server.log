@@ -1,1 +1,1 @@
-2013/04/09 12:35:04 127.0.0.1:49234 - - [2013-04-09 12:35:04.164083 -0600 MDT] "GET / HTTP/1.1" 0 1002 "" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.43 Safari/537.31"
+2013/04/09 14:07:22 [::1]:49400 - - [2013-04-09 14:07:22.496991 -0600 MDT] "GET / HTTP/1.1" 0 23 "" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.43 Safari/537.31"
