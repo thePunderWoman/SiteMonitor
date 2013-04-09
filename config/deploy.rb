@@ -19,7 +19,7 @@ set :use_sudo, false
 set :sudo_prompt, ""
 set :normalize_asset_timestamps, false
 
-after :deploy, "deploy:goget", "db:configure", "deploy:compile", "deploy:own", "deploy:stop", "deploy:restart"
+after :deploy, "deploy:goget", "db:configure", "deploy:compile", "deploy:stop", "deploy:restart"
 
 namespace :db do
   desc "set database Connection String"
@@ -59,7 +59,7 @@ namespace :deploy do
       kill_processes_matching "site-monitor"
   end
   task :restart do
-  	restart_cmd = "#{current_release}/site-monitor -http=127.0.0.1:8090"
+  	restart_cmd = "sudo #{current_release}/site-monitor -http=127.0.0.1:8090"
   	run "nohup sh -c '#{restart_cmd} &' > sitemonitor-nohup.out"
   end
 end
