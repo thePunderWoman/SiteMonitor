@@ -4,6 +4,7 @@ import (
 	"./controllers"
 	"./controllers/admin"
 	"./controllers/auth"
+	"./helpers/database"
 	"./helpers/globals"
 	"./helpers/plate"
 	"log"
@@ -26,7 +27,11 @@ const (
 )
 
 func main() {
-	log.Println("Started App")
+	err := database.PrepareAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	globals.SetGlobals()
 	server := plate.NewServer("doughboy")
 
