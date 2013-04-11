@@ -165,7 +165,8 @@ func (notifier *Notify) Notify(name string, url string, lastChecked time.Time, t
 	ssettings := Setting{}
 	serversettings, err := ssettings.Get()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 	settings := Settings{
 		Server:   serversettings.Server,

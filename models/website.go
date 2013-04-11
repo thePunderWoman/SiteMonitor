@@ -49,6 +49,7 @@ func (website Website) GetAll() (sites []Website, err error) {
 	if database.MysqlError(err) {
 		return sites, err
 	}
+
 	if len(rows) > 0 {
 		id := res.Map("id")
 		name := res.Map("name")
@@ -83,12 +84,14 @@ func (website Website) GetAll() (sites []Website, err error) {
 func CleanLogs() {
 	sel, err := database.Db.Prepare(getAllMonitoringWebsitesStmt)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 
 	rows, res, err := sel.Exec()
 	if database.MysqlError(err) {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 
 	id := res.Map("id")
@@ -116,7 +119,8 @@ func CheckSites(r *http.Request) (err error) {
 	now := time.Now()
 	var logs []History
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return err
 	}
 	if err == nil {
 		for i := 0; i < len(sites); i++ {

@@ -260,7 +260,8 @@ func SaveLogs(logs []History) {
 func (entry *History) Save() {
 	ins, err := database.Db.Prepare(insertLogStmt)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 
 	params := struct {
@@ -284,7 +285,8 @@ func (entry *History) Save() {
 func ClearOld(siteID int, days int) {
 	del, err := database.Db.Prepare(clearOldLogsStmt)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 	deleteBefore := time.Now().AddDate(0, 0, -days)
 	params := struct {
@@ -298,6 +300,7 @@ func ClearOld(siteID int, days int) {
 	del.Bind(&params)
 	_, _, err = del.Exec()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 }
