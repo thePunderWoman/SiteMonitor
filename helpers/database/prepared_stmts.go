@@ -1,9 +1,9 @@
 package database
 
 import (
-	"../mymysql/mysql"
 	"errors"
 	"expvar"
+	"github.com/ziutek/mymysql/mysql"
 )
 
 // History prepared statements

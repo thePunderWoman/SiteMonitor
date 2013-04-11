@@ -26,6 +26,7 @@ const (
 )
 
 func main() {
+	log.Println("Started App")
 	globals.SetGlobals()
 	server := plate.NewServer("doughboy")
 

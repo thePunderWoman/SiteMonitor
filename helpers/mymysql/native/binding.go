@@ -1,7 +1,7 @@
 package native
 
 import (
-	"../mysql"
+	"github.com/ziutek/mymysql/mysql"
 	"reflect"
 	"time"
 )

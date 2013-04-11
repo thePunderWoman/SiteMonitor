@@ -1,7 +1,7 @@
 package database
 
 import (
-	"../mymysql/thrsafe"
+	"github.com/ziutek/mymysql/thrsafe"
 	"log"
 	"os"
 )
