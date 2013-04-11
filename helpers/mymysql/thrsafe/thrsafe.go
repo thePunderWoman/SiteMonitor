@@ -9,7 +9,7 @@
 package thrsafe
 
 import (
-	"github.com/ziutek/mymysql/mysql"
+	"../mysql"
 	_ "github.com/ziutek/mymysql/native"
 	"io"
 	"sync"

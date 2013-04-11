@@ -10,20 +10,6 @@ import (
 
 var (
 	UTC, _ = time.LoadLocation("UTC")
-
-	getSiteHistoryStmt = "select * from History where siteID = ? order by checked desc"
-
-	getSiteHistoryUpCountStmt = `select COUNT(*) from History 
-								where siteID = ? AND status = 'up'`
-
-	getSiteHistoryDownCountStmt = `select COUNT(*) from History 
-								where siteID = ? AND Status = 'down'`
-	getSiteUptimeStmt = `select (select COUNT(*) FROM History WHERE status = 'up' AND siteID = ?) AS upcount, 
-								(select COUNT(*) FROM History WHERE siteID = ?) AS total`
-
-	getLastEmailStmt = `select * from History WHERE siteID = ? and emailed = 1 order by checked desc limit 1`
-	insertLogStmt    = `insert into History (siteID,checked,status,emailed,code,responseTime) VALUES (?,UTC_TIMESTAMP(),?,?,?,?)`
-	clearOldLogsStmt = `delete from History WHERE siteID = ? and checked < ?`
 )
 
 type History struct {
@@ -45,7 +31,7 @@ type HistoryGroup struct {
 
 func GetHistory(siteID int) (loggroups []HistoryGroup, err error) {
 
-	sel, err := database.Db.Prepare(getSiteHistoryStmt)
+	sel, err := database.GetStatement("getSiteHistoryStmt")
 	if err != nil {
 		return loggroups, err
 	}
@@ -122,7 +108,7 @@ func GetHistory(siteID int) (loggroups []HistoryGroup, err error) {
 }
 
 func GetStatus(siteID int) (history History, err error) {
-	sel, err := database.Db.Prepare(getSiteHistoryStmt)
+	sel, err := database.GetStatement("getSiteHistoryStmt")
 	if err != nil {
 		return history, err
 	}
@@ -159,7 +145,7 @@ func GetStatus(siteID int) (history History, err error) {
 }
 
 func GetLastEmail(siteID int) (logentry History, err error) {
-	sel, err := database.Db.Prepare(getLastEmailStmt)
+	sel, err := database.GetStatement("getLastEmailStmt")
 	if err != nil {
 		return logentry, err
 	}
@@ -203,7 +189,7 @@ func GetLastEmail(siteID int) (logentry History, err error) {
 
 func GetUptime(siteID int) (uptime float32) {
 	uptime = 0
-	sel, err := database.Db.Prepare(getSiteUptimeStmt)
+	sel, err := database.GetStatement("getSiteUptimeStmt")
 	if err != nil {
 		return uptime
 	}
@@ -258,7 +244,7 @@ func SaveLogs(logs []History) {
 }
 
 func (entry *History) Save() {
-	ins, err := database.Db.Prepare(insertLogStmt)
+	ins, err := database.GetStatement("insertLogStmt")
 	if err != nil {
 		log.Println(err)
 		return
@@ -283,7 +269,7 @@ func (entry *History) Save() {
 }
 
 func ClearOld(siteID int, days int) {
-	del, err := database.Db.Prepare(clearOldLogsStmt)
+	del, err := database.GetStatement("clearOldLogsStmt")
 	if err != nil {
 		log.Println(err)
 		return

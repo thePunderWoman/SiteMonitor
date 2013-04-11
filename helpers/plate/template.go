@@ -20,6 +20,20 @@ type Template struct {
 /* Templating |-- Using html/template library built into golang http://golang.org/pkg/html/template/ --|
    ------------------------------ */
 
+func (t *Template) SetGlobalValues() {
+	// Set Bag values
+	// t.Bag["val"] = val
+
+	// Set FuncMap Values
+	/* t.FuncMap["name"] = func() int {
+		return val
+	}*/
+
+	t.FuncMap["CurrentYear"] = func() int {
+		return time.Now().Year()
+	}
+}
+
 func (this *Server) Template(w http.ResponseWriter) (templ Template, err error) {
 	if w == nil {
 		log.Printf("Template Error: %v", err.Error())
@@ -41,9 +55,8 @@ func (t Template) SinglePage(file_path string) (err error) {
 	if t.FuncMap == nil {
 		t.FuncMap = template.FuncMap{}
 	}
-	t.FuncMap["CurrentYear"] = func() int {
-		return time.Now().Year()
-	}
+
+	t.SetGlobalValues()
 
 	templateName := t.Template
 	if strings.Index(templateName, "/") > -1 {
@@ -73,9 +86,8 @@ func (t Template) DisplayTemplate() (err error) {
 	if t.FuncMap == nil {
 		t.FuncMap = template.FuncMap{}
 	}
-	t.FuncMap["CurrentYear"] = func() int {
-		return time.Now().Year()
-	}
+
+	t.SetGlobalValues()
 
 	templateName := t.Layout
 	if strings.Index(templateName, "/") > -1 {
@@ -106,9 +118,8 @@ func (t Template) DisplayMultiple(templates []string) (err error) {
 	if t.FuncMap == nil {
 		t.FuncMap = template.FuncMap{}
 	}
-	t.FuncMap["CurrentYear"] = func() int {
-		return time.Now().Year()
-	}
+
+	t.SetGlobalValues()
 
 	templateName := t.Layout
 	if strings.Index(templateName, "/") > -1 {

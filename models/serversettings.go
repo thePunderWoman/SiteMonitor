@@ -7,16 +7,6 @@ import (
 	"strconv"
 )
 
-var (
-	getSettingsStmt = `select * from Setting
-							limit 1`
-
-	getSettingsIDStmt = `select id from Setting limit 1`
-
-	insertSettingsStmt = `insert into Setting (server,email,requireSSL,username,password,port) VALUES (?,?,?,?,?,?)`
-	updateSettingsStmt = `update Setting set server = ?, email = ?, requireSSL = ?, username = ?, password = ?, port = ? WHERE id = ?`
-)
-
 type Setting struct {
 	id       int
 	Server   string
@@ -28,7 +18,7 @@ type Setting struct {
 }
 
 func (s Setting) Get() (setting Setting, err error) {
-	qry, err := database.Db.Prepare(getSettingsStmt)
+	qry, err := database.GetStatement("getSettingsStmt")
 	if err != nil {
 		return setting, err
 	}
@@ -64,7 +54,7 @@ func (s Setting) Get() (setting Setting, err error) {
 func (s Setting) Save(r *http.Request) (err error) {
 
 	// check if there's a row already
-	qry, err := database.Db.Prepare(getSettingsIDStmt)
+	qry, err := database.GetStatement("getSettingsIDStmt")
 	if err != nil {
 		return err
 	}
@@ -93,7 +83,7 @@ func (s Setting) Save(r *http.Request) (err error) {
 
 	if settingID == 0 {
 		// check if there's a row already
-		ins, err := database.Db.Prepare(insertSettingsStmt)
+		ins, err := database.GetStatement("insertSettingsStmt")
 		if err != nil {
 			return err
 		}
@@ -122,7 +112,7 @@ func (s Setting) Save(r *http.Request) (err error) {
 		}
 	} else {
 		// check if there's a row already
-		upd, err := database.Db.Prepare(updateSettingsStmt)
+		upd, err := database.GetStatement("updateSettingsStmt")
 		if err != nil {
 			return err
 		}

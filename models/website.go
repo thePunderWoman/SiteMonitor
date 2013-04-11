@@ -24,23 +24,12 @@ type Website struct {
 	LogDays       int
 }
 
-var (
-	getAllWebsitesStmt           = "select * from Website order by name"
-	getAllMonitoringWebsitesStmt = "select * from Website where monitoring = 1"
-	getWebsiteByIDStmt           = "select * from Website where id = ?"
-	deleteWebsiteByIDStmt        = "delete from Website where id = ?"
-	deleteHistoryBySiteStmt      = "delete from History where siteID = ?"
-	deleteNotifiersBySiteStmt    = "delete from Notify where siteID = ?"
-	insertWebsiteStmt            = "INSERT INTO Website (name, URL, checkinterval, monitoring, public, emailInterval, logDays) VALUES (?,?,?,?,?,?,?)"
-	updateWebsiteStmt            = "update Website set name = ?, URL = ?, checkinterval = ?, monitoring = ?, public = ?, emailInterval = ?, logDays = ? WHERE id = ?"
-)
-
 func (website Website) IntervalMins() int {
 	return website.Interval * website.EmailInterval
 }
 
 func (website Website) GetAll() (sites []Website, err error) {
-	sel, err := database.Db.Prepare(getAllWebsitesStmt)
+	sel, err := database.GetStatement("getAllWebsitesStmt")
 	if err != nil {
 		return sites, err
 	}
@@ -82,7 +71,7 @@ func (website Website) GetAll() (sites []Website, err error) {
 }
 
 func CleanLogs() {
-	sel, err := database.Db.Prepare(getAllMonitoringWebsitesStmt)
+	sel, err := database.GetStatement("getAllMonitoringWebsitesStmt")
 	if err != nil {
 		log.Println(err)
 		return
@@ -145,7 +134,7 @@ func CheckSites(r *http.Request) (err error) {
 }
 
 func (website Website) Get(id int) (site Website, err error) {
-	sel, err := database.Db.Prepare(getWebsiteByIDStmt)
+	sel, err := database.GetStatement("getWebsiteByIDStmt")
 	if err != nil {
 		return site, err
 	}
@@ -196,7 +185,7 @@ func (website Website) Delete(r *http.Request) (err error) {
 	}{}
 	params.SiteID = siteID
 
-	del, err := database.Db.Prepare(deleteNotifierStmt)
+	del, err := database.GetStatement("deleteNotifierStmt")
 	if err != nil {
 		return err
 	}
@@ -207,7 +196,7 @@ func (website Website) Delete(r *http.Request) (err error) {
 		return err
 	}
 
-	del, err = database.Db.Prepare(deleteHistoryBySiteStmt)
+	del, err = database.GetStatement("deleteHistoryBySiteStmt")
 	if err != nil {
 		return err
 	}
@@ -218,7 +207,7 @@ func (website Website) Delete(r *http.Request) (err error) {
 		return err
 	}
 
-	del, err = database.Db.Prepare(deleteWebsiteByIDStmt)
+	del, err = database.GetStatement("deleteWebsiteByIDStmt")
 	if err != nil {
 		return err
 	}
@@ -281,7 +270,7 @@ func (website Website) Save(r *http.Request) (err error) {
 		params.EmailInterval = emailInterval
 		params.LogDays = logdays
 
-		ins, err := database.Db.Prepare(insertWebsiteStmt)
+		ins, err := database.GetStatement("insertWebsiteStmt")
 
 		if err != nil {
 			return err
@@ -313,7 +302,7 @@ func (website Website) Save(r *http.Request) (err error) {
 		params.LogDays = logdays
 		params.SiteID = siteID
 
-		upd, err := database.Db.Prepare(updateWebsiteStmt)
+		upd, err := database.GetStatement("updateWebsiteStmt")
 		if err != nil {
 			return err
 		}

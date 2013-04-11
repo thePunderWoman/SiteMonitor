@@ -10,16 +10,6 @@ import (
 	"time"
 )
 
-var (
-	getAllNotifiersStmt = `select * from Notify
-						where siteID = ?
-						order by name`
-	getNotifierByIDStmt = `select * from Notify
-						   where id = ?`
-	deleteNotifierStmt = `delete from Notify where id = ?`
-	insertNotifierStmt = `insert into Notify (siteID,name,email) VALUES (?,?,?)`
-)
-
 type Notify struct {
 	ID       int
 	ParentID int
@@ -28,7 +18,7 @@ type Notify struct {
 }
 
 func (n Notify) GetAllBySite(parentID int) (notifiers []Notify, err error) {
-	sel, err := database.Db.Prepare(getAllNotifiersStmt)
+	sel, err := database.GetStatement("getAllNotifiersStmt")
 	if err != nil {
 		return notifiers, err
 	}
@@ -67,7 +57,7 @@ func (n Notify) GetAllBySite(parentID int) (notifiers []Notify, err error) {
 func (n Notify) Get(r *http.Request) (notify Notify, err error) {
 	qparams := r.URL.Query()
 	id, _ := strconv.Atoi(qparams.Get(":key"))
-	sel, err := database.Db.Prepare(getNotifierByIDStmt)
+	sel, err := database.GetStatement("getNotifierByIDStmt")
 	if err != nil {
 		return notify, err
 	}
@@ -102,7 +92,7 @@ func (n Notify) Get(r *http.Request) (notify Notify, err error) {
 
 func (n Notify) Delete(r *http.Request) (err error) {
 	id, _ := strconv.Atoi(r.FormValue("key"))
-	del, err := database.Db.Prepare(deleteNotifierStmt)
+	del, err := database.GetStatement("deleteNotifierStmt")
 	if err != nil {
 		return err
 	}
@@ -134,7 +124,7 @@ func (n Notify) Save(r *http.Request) (err error) {
 		return
 	}
 
-	ins, err := database.Db.Prepare(insertNotifierStmt)
+	ins, err := database.GetStatement("insertNotifierStmt")
 	if err != nil {
 		return err
 	}
