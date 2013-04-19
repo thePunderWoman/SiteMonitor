@@ -70,6 +70,48 @@ func (website Website) GetAll() (sites []Website, err error) {
 	return sites, err
 }
 
+func (website Website) GetAllMonitoring() (sites []Website, err error) {
+	sel, err := database.GetStatement("getAllMonitoringWebsitesStmt")
+	if err != nil {
+		return sites, err
+	}
+
+	rows, res, err := sel.Exec()
+	if database.MysqlError(err) {
+		return sites, err
+	}
+
+	if len(rows) > 0 {
+		id := res.Map("id")
+		name := res.Map("name")
+		urlstr := res.Map("URL")
+		interval := res.Map("checkInterval")
+		monitoring := res.Map("monitoring")
+		public := res.Map("public")
+		emailInverval := res.Map("emailInterval")
+		logDays := res.Map("logDays")
+
+		for _, row := range rows {
+			status, _ := GetStatus(row.Int(id))
+			site := Website{
+				ID:            row.Int(id),
+				Name:          row.Str(name),
+				URL:           row.Str(urlstr),
+				Interval:      row.Int(interval),
+				Monitoring:    row.Bool(monitoring),
+				Public:        row.Bool(public),
+				EmailInterval: row.Int(emailInverval),
+				LogDays:       row.Int(logDays),
+				Uptime:        GetUptime(row.Int(id)),
+				Status:        status,
+			}
+			sites = append(sites, site)
+		}
+	}
+
+	return sites, err
+}
+
 func CleanLogs() {
 	sel, err := database.GetStatement("getAllMonitoringWebsitesStmt")
 	if err != nil {
@@ -104,7 +146,7 @@ func CleanLogs() {
 
 func CheckSites(r *http.Request) (err error) {
 	s := Website{}
-	sites, err := s.GetAll()
+	sites, err := s.GetAllMonitoring()
 	now := time.Now()
 	var logs []History
 	if err != nil {
