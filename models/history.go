@@ -236,10 +236,7 @@ func Log(siteID int, checked time.Time, status string, emailed bool, code int, r
 func SaveLogs(logs []History) {
 	c := make(chan int)
 	for _, logentry := range logs {
-		go func(log History, ch chan int) {
-			log.Save()
-			ch <- 1
-		}(logentry, c)
+		go logentry.Save()
 	}
 }
 
@@ -263,7 +260,7 @@ func (entry *History) Save() {
 	params.Emailed = entry.Emailed
 	params.Code = entry.Code
 	params.ResponseTime = entry.ResponseTime
-
+	ins.Raw.Reset()
 	ins.Bind(&params)
 	_, _, err = ins.Exec()
 }
