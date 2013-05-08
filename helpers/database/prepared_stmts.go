@@ -3,7 +3,9 @@ package database
 import (
 	"errors"
 	"expvar"
-	"github.com/ziutek/mymysql/mysql"
+	"github.com/ziutek/mymysql/autorc"
+	_ "github.com/ziutek/mymysql/mysql"
+	_ "github.com/ziutek/mymysql/thrsafe"
 )
 
 // History prepared statements
@@ -59,16 +61,16 @@ var (
 
 // Create map of all statements
 var (
-	Statements map[string]mysql.Stmt
+	Statements map[string]*autorc.Stmt
 )
 
 // Prepare all MySQL statements
 func PrepareAll() error {
 
-	Statements = make(map[string]mysql.Stmt, 0)
+	Statements = make(map[string]*autorc.Stmt, 0)
 
-	if !Db.IsConnected() {
-		Db.Connect()
+	if !Db.Raw.IsConnected() {
+		Db.Raw.Connect()
 	}
 
 	// Start History Statements
@@ -225,7 +227,7 @@ func PrepareAll() error {
 	return nil
 }
 
-func GetStatement(key string) (stmt mysql.Stmt, err error) {
+func GetStatement(key string) (stmt *autorc.Stmt, err error) {
 	stmt, ok := Statements[key]
 	if !ok {
 		qry := expvar.Get(key)
