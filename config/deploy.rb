@@ -10,7 +10,6 @@ set :scm_passphrase, ""
 set :user, "deployer"
 
 role :web, "curt-api-server1.cloudapp.net", "curt-api-server2.cloudapp.net"
-role :app, "curt-api-server1.cloudapp.net", "curt-api-server2.cloudapp.net"
 
 set :deploy_to, "/home/deployer/#{application}"
 set :deploy_via, :remote_cache
@@ -18,6 +17,10 @@ set :deploy_via, :remote_cache
 set :use_sudo, false
 set :sudo_prompt, ""
 set :normalize_asset_timestamps, false
+
+set :default_environment, {
+  'GOPATH' => "$HOME/gocode"
+}
 
 after :deploy, "deploy:goget", "db:configure", "deploy:compile", "deploy:stop", "deploy:restart"
 
