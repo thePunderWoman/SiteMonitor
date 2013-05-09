@@ -65,5 +65,9 @@ namespace :deploy do
 end
 
 def kill_processes_matching(name)
-  run "killall -q #{name}"
+  begin
+    run "killall -q #{name}"
+  rescue Exception => error
+    puts "No processes to kill"
+  end
 end
