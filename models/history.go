@@ -246,21 +246,8 @@ func (entry *History) Save() {
 		return
 	}
 
-	params := struct {
-		SiteID       int
-		Status       string
-		Emailed      bool
-		Code         int
-		ResponseTime float64
-	}{}
-
-	params.SiteID = entry.SiteID
-	params.Status = entry.Status
-	params.Emailed = entry.Emailed
-	params.Code = entry.Code
-	params.ResponseTime = entry.ResponseTime
 	ins.Raw.Reset()
-	ins.Bind(&params)
+	ins.Bind(entry.SiteID, entry.Status, entry.Emailed, entry.Code, entry.ResponseTime)
 	_, _, err = ins.Exec()
 }
 
