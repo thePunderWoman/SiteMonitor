@@ -234,7 +234,6 @@ func Log(siteID int, checked time.Time, status string, emailed bool, code int, r
 }
 
 func SaveLogs(logs []History) {
-	c := make(chan int)
 	for _, logentry := range logs {
 		go logentry.Save()
 	}
