@@ -54,9 +54,6 @@ namespace :deploy do
   task :compile do
   	run "GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /usr/local/go/bin/go build -o #{deploy_to}/current/site-monitor #{deploy_to}/current/index.go"
   end
-  task :own do
-    run "sudo chown -R deployer:deployers #{deploy_to}"
-  end
   task :start do ; end
   task :stop do 
       kill_processes_matching "site-monitor"
