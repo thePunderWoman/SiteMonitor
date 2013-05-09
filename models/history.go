@@ -235,8 +235,7 @@ func Log(siteID int, checked time.Time, status string, emailed bool, code int, r
 
 func SaveLogs(logs []History) {
 	for i, _ := range logs {
-		log.Println(logs[i])
-		logs[i].Save()
+		go logs[i].Save()
 	}
 }
 
@@ -248,7 +247,6 @@ func (entry *History) Save() {
 	}
 
 	ins.Raw.Reset()
-	log.Println(entry)
 	ins.Bind(entry.SiteID, entry.Status, entry.Emailed, entry.Code, entry.ResponseTime)
 	_, _, err = ins.Exec()
 }
