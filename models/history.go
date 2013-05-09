@@ -234,8 +234,8 @@ func Log(siteID int, checked time.Time, status string, emailed bool, code int, r
 }
 
 func SaveLogs(logs []History) {
-	for _, logentry := range logs {
-		go logentry.Save()
+	for i, _ := range logs {
+		go logs[i].Save()
 	}
 }
 
