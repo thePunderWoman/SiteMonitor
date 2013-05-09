@@ -1,3 +1,0 @@
-2013/05/09 16:32:01 [::1]:56492 - - [2013-05-09 16:32:01.846782 +0000 UTC] "GET /check HTTP/1.1" 0 38 "" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31"
-2013/05/09 16:35:29 [::1]:56492 - - [2013-05-09 16:35:29.483712 +0000 UTC] "GET /check HTTP/1.1" 0 38 "" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31"
-2013/05/09 16:39:33 [::1]:56492 - - [2013-05-09 16:39:33.706699 +0000 UTC] "GET /check HTTP/1.1" 0 38 "" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.65 Safari/537.31"

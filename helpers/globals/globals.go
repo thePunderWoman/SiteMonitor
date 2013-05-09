@@ -2,6 +2,7 @@ package globals
 
 import (
 	"flag"
+	"os"
 )
 
 var (
@@ -11,4 +12,5 @@ var (
 
 func SetGlobals() {
 	flag.Parse()
+	os.Setenv("TZ", "UTC")
 }
