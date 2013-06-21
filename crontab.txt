@@ -1,0 +1,2 @@
+*/1 * * * * /usr/bin/wget -O /dev/null http://monitor.curtmfg.com/Check
+30 2 * * * /usr/bin/wget -O /dev/null http://monitor.curtmfg.com/CleanLogs
