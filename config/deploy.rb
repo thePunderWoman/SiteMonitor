@@ -49,8 +49,8 @@ namespace :db do
 end
 namespace :deploy do
   task :goget do
-  	run "/usr/local/go/bin/go get github.com/ziutek/mymysql/native"
-  	run "/usr/local/go/bin/go get github.com/ziutek/mymysql/mysql"
+  	run "/home/#{user}/bin/go get github.com/ziutek/mymysql/native"
+  	run "/home/#{user}/bin/go get github.com/ziutek/mymysql/mysql"
   end
   task :compile do
   	run "GOOS=linux GOARCH=amd64 CGO_ENABLED=0 /home/#{user}/bin/go build -o #{deploy_to}/current/site-monitor #{deploy_to}/current/index.go"
