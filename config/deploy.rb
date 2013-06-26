@@ -66,9 +66,5 @@ namespace :deploy do
 end
 
 def kill_processes_matching(name)
-  begin
-    run "killall -q #{name}"
-  rescue Exception => error
-    puts "No processes to kill"
-  end
+  run "ps -ef | grep #{name} | grep -v grep | awk '{print $2}' | sudo xargs kill -9 || echo 'no process with name #{name} found'"
 end
